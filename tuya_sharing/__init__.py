@@ -3,8 +3,8 @@ from .manager import Manager, SharingDeviceListener
 from .customerlogging import logger
 from .device import CustomerDevice, DeviceFunction, DeviceStatusRange
 from .scenes import SharingScene, SceneRepository
-from .customerapi import CustomerApi
-from .user import LoginControl,UserRepository
+from .customerapi import CustomerApi, SharingTokenListener
+from .user import LoginControl, UserRepository
 
 __all__ = [
     "Manager",
@@ -15,6 +15,7 @@ __all__ = [
     "SharingScene",
     "CustomerApi",
     "SharingDeviceListener",
+    "SharingTokenListener",
     "LoginControl",
     "SceneRepository",
     "UserRepository"

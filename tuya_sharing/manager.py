@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Literal, Optional
 
-from .customerapi import CustomerApi, CustomerTokenInfo
+from .customerapi import CustomerApi, CustomerTokenInfo, SharingTokenListener
 from .device import DeviceRepository, CustomerDevice
 from .home import HomeRepository, SmartLifeHome
 from .scenes import SceneRepository
@@ -31,14 +31,16 @@ class Manager:
             user_code: str,
             terminal_id: str,
             end_point: str,
-            token_response: dict[str, Any] = None
+            token_response: dict[str, Any] = None,
+            listener: SharingTokenListener = None,
     ) -> None:
         self.terminal_id = terminal_id
         self.customer_api = CustomerApi(
             CustomerTokenInfo(token_response),
             client_id,
             user_code,
-            end_point
+            end_point,
+            listener,
         )
         self.device_map: dict[str, CustomerDevice] = {}
         self.user_homes: list[SmartLifeHome] = []

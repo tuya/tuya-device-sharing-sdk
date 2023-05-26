@@ -11,6 +11,7 @@ import random
 import base64
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import uuid
+from abc import ABCMeta
 
 import time
 
@@ -42,6 +43,7 @@ class CustomerApi:
             client_id: str,
             user_code: str,
             end_point: str,
+            listener: SharingTokenListener
     ):
         self.session = requests.session()
         self.token_info = token_info
@@ -49,6 +51,7 @@ class CustomerApi:
         self.user_code = user_code
         self.endpoint = end_point
         self.refresh_token = False
+        self.token_listener = listener
 
     def __request(
             self,
@@ -151,6 +154,8 @@ class CustomerApi:
                     "refresh_token": result["refreshToken"]
                 }
                 self.token_info = CustomerTokenInfo(token_info)
+                if self.token_listener is not None:
+                    self.token_listener.update_token(token_info)
         except Exception as e:
             logger.error("net work error = %s", e)
         finally:
@@ -294,3 +299,10 @@ def _restful_sign(hash_key: str, query_encdata: str, body_encdata: str, data: di
 
     hash_value = hmac.new(hash_key, sign_str, hashlib.sha256)
     return hash_value.hexdigest()
+
+
+class SharingTokenListener(metaclass=ABCMeta):
+    def update_token(self, token_info: dict[str, Any]):
+        """Update token.
+        """
+        pass

@@ -12,13 +12,13 @@ class LoginControl:
 
     def qr_code(self, client_id: str, schema: str, user_code: str) -> Dict[str, Any]:
         response = self.session.request("POST",
-                                        f"https://t7ywzgs6hjbnvnkfqymf7x4zxq0yaouf.lambda-url.us-west-2.on.aws/v1.0/m/life/home-assistant/qrcode/tokens?clientid={client_id}&usercode={user_code}&schema={schema}",
+                                        f"https://apigw.iotbing.com/v1.0/m/life/home-assistant/qrcode/tokens?clientid={client_id}&usercode={user_code}&schema={schema}",
                                         params=None, json=None, headers=None)
         return response.json()
 
     def login_result(self, token: str, client_id: str, user_code: str) -> Tuple[bool, Dict[str, Any]]:
         response = self.session.request("GET",
-                                        f"https://t7ywzgs6hjbnvnkfqymf7x4zxq0yaouf.lambda-url.us-west-2.on.aws/v1.0/m/life/home-assistant/qrcode/tokens/{token}?clientid={client_id}&usercode={user_code}",
+                                        f"https://apigw.iotbing.com/v1.0/m/life/home-assistant/qrcode/tokens/{token}?clientid={client_id}&usercode={user_code}",
                                         params=None, json=None, headers=None)
         response = response.json()
         if response.get("success"):
