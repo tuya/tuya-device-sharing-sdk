@@ -118,13 +118,19 @@ class Manager:
 
     def on_message(self, msg: dict):
         logger.debug(f"mq receive-> {msg}")
-        protocol = msg.get("protocol", 0)
-        data = msg.get("data", {})
 
-        if protocol == PROTOCOL_DEVICE_REPORT:
-            self._on_device_report(data["devId"], data["status"])
-        if protocol == PROTOCOL_OTHER:
-            self._on_device_other(data["bizData"]["devId"], data["bizCode"], data)
+        try:
+            protocol = msg.get("protocol", 0)
+            data = msg.get("data", {})
+
+            if protocol == PROTOCOL_DEVICE_REPORT:
+                self._on_device_report(data["devId"], data["status"])
+            if protocol == PROTOCOL_OTHER and data['bizCode'] in [BIZCODE_DELETE, BIZCODE_BIND_USER,
+                                                                  BIZCODE_DPNAME_UPDATE, BIZCODE_NAME_UPDATE,
+                                                                  BIZCODE_OFFLINE, BIZCODE_ONLINE]:
+                self._on_device_other(data["bizData"]["devId"], data["bizCode"], data)
+        except Exception as e:
+            logger.error("on message error = %s", e)
 
     def __update_device(self, device: CustomerDevice):
         for listener in self.device_listeners:
