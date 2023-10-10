@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Optional
+import time
 
 from .customerapi import CustomerApi
+from .customerlogging import logger
 
 
 class DeviceFunction(SimpleNamespace):
@@ -81,6 +83,9 @@ class CustomerDevice(SimpleNamespace):
     active_time: int
     create_time: int
     update_time: int
+    set_up: Optional[bool] = False
+    support_local: Optional[bool] = False
+    local_strategy: dict[int, dict[str, Any]] = {}
 
     status: dict[str, Any] = {}
     function: dict[str, DeviceFunction] = {}
@@ -94,6 +99,7 @@ class CustomerDevice(SimpleNamespace):
 class DeviceRepository:
     def __init__(self, customer_api: CustomerApi):
         self.api = customer_api
+        self.filter = Filter(10)
 
     def query_devices_by_home(self, home_id: str) -> list[CustomerDevice]:
         response = self.api.get(f"/v1.0/m/life/ha/home/devices", {"homeId": home_id})
@@ -116,6 +122,7 @@ class DeviceRepository:
                         status[code] = value
                 device.status = status
                 self.update_device_specification(device)
+                self.update_device_strategy_info(device)
                 _devices.append(device)
         return _devices
 
@@ -137,5 +144,71 @@ class DeviceRepository:
             device.function = function_map
             device.status_range = status_range
 
+    def update_device_strategy_info(self, device: CustomerDevice):
+        device_id = device.id
+        response = self.api.get(f"/v1.0/m/life/devices/{device_id}/status")
+        support_local = True
+        if response.get("success"):
+            result = response.get("result", {})
+            pid = result["productKey"]
+            dp_id_map = {}
+            for dp_status_relation in result["dpStatusRelationDTOS"]:
+                if not dp_status_relation["supportLocal"]:
+                    support_local = False
+                    break
+                # statusFormat valueDesc、valueType,enumMappingMap,pid
+                dp_id_map[dp_status_relation["dpId"]] = {
+                    "value_convert": dp_status_relation["valueConvert"],
+                    "status_code": dp_status_relation["statusCode"],
+                    "config_item": {
+                        "statusFormat": dp_status_relation["statusFormat"],
+                        "valueDesc": dp_status_relation["valueDesc"],
+                        "valueType": dp_status_relation["valueType"],
+                        "enumMappingMap": dp_status_relation["enumMappingMap"],
+                        "pid": pid,
+                    }
+                }
+            device.support_local = support_local
+            if support_local:
+                device.local_strategy = dp_id_map
+
+            logger.debug(
+                f"device status strategy dev_id = {device_id} support_local = {support_local} local_strategy = {dp_id_map}")
+
     def send_commands(self, device_id: str, commands: list[dict[str, Any]]):
-        self.api.post(f"/v1.1/m/thing/{device_id}/commands", None, {"commands": commands})
+        if self.filter.call(device_id, commands):
+            self.api.post(f"/v1.1/m/thing/{device_id}/commands", None, {"commands": commands})
+
+
+class Filter:
+    def __init__(self, time: int):
+        self.last_call_time = {}
+        self.time_limit = time
+        self.last_clean_time = 0
+
+    def clean_expired_keys(self):
+        current_time = time.time()
+        if current_time - self.last_clean_time >= 10:
+            expired_keys = [key for key, (_, last_time) in self.last_call_time.items() if
+                            current_time - last_time >= 10]
+            for key in expired_keys:
+                del self.last_call_time[key]
+            self.last_clean_time = current_time
+
+    def call(self, dev_id, param) -> bool:
+        self.clean_expired_keys()
+
+        current_time = time.time()
+        if dev_id in self.last_call_time:
+            last_param, last_time = self.last_call_time[dev_id]
+            if param != last_param or current_time - last_time >= self.time_limit:
+                self.last_call_time[dev_id] = (param, current_time)
+                logger.debug(f"filter receive one dev_id = {dev_id} param = {param}")
+                return True
+            else:
+                logger.debug(f"filter receive two dev_id = {dev_id} param = {param}")
+                return False
+        else:
+            self.last_call_time[dev_id] = (param, current_time)
+            logger.debug(f"filter receive three dev_id = {dev_id} param = {param}")
+            return True

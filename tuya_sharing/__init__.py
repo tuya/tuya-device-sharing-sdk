@@ -5,6 +5,9 @@ from .device import CustomerDevice, DeviceFunction, DeviceStatusRange
 from .scenes import SharingScene, SceneRepository
 from .customerapi import CustomerApi, SharingTokenListener
 from .user import LoginControl, UserRepository
+from .strategy import strategy
+from . import strategy_repo
+
 
 __all__ = [
     "Manager",
@@ -18,7 +21,8 @@ __all__ = [
     "SharingTokenListener",
     "LoginControl",
     "SceneRepository",
-    "UserRepository"
+    "UserRepository",
+    "strategy"
 ]
 
 __version__ = VERSION

@@ -7,6 +7,7 @@ from typing import Any, Callable
 from requests.exceptions import RequestException
 import time
 from .customerlogging import logger
+from .device import CustomerDevice
 from paho.mqtt import client as mqtt
 from urllib.parse import urlsplit
 import json
@@ -33,7 +34,7 @@ class SharingMQConfig:
 
 
 class SharingMQ(threading.Thread):
-    def __init__(self, customer_api: CustomerApi, owner_ids: list, device_ids: list):
+    def __init__(self, customer_api: CustomerApi, owner_ids: list, device: list[CustomerDevice]):
         super().__init__()
         self.api = customer_api
         self._stop_event = threading.Event()
@@ -41,7 +42,7 @@ class SharingMQ(threading.Thread):
         self.mq_config = None
         self.message_listeners = set()
         self.owner_ids = owner_ids
-        self.device_ids = device_ids
+        self.device = device
 
     def _get_mqtt_config(self) -> SharingMQConfig:
         response = self.api.post("/v1.0/m/life/ha/access/config", None,
@@ -62,8 +63,15 @@ class SharingMQ(threading.Thread):
         if rc == 0:
             for owner_id in self.owner_ids:
                 mqttc.subscribe(self.mq_config.owner_topic.format(ownerId=owner_id))
-            for dev_id in self.device_ids:
-                mqttc.subscribe(self.mq_config.dev_topic.format(devId=dev_id))
+            for dev in self.device:
+                dev_id = dev.id
+                subscribe_topic = self.mq_config.dev_topic.format(devId=dev_id)
+                if dev.support_local:
+                    subscribe_topic += "/1"
+                else:
+                    subscribe_topic += "/0"
+                mqttc.subscribe(subscribe_topic)
+
         elif rc == CONNECT_FAILED_NOT_AUTHORISED:
             self.__run_mqtt()
 

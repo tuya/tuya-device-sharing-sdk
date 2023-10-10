@@ -7,6 +7,7 @@ from .device import DeviceRepository, CustomerDevice
 from .home import HomeRepository, SmartLifeHome
 from .scenes import SceneRepository
 from .user import UserRepository
+from .strategy import strategy
 
 from abc import ABCMeta, abstractclassmethod
 from .customerlogging import logger
@@ -62,22 +63,26 @@ class Manager:
             for device in devices_by_home:
                 self.device_map[device.id] = device
 
-        self._refresh_mq()
+    def report_version(self, ha_version: str, integration_version: str, sdk_version: str):
+        logger.debug(
+            f"report version ha_version={ha_version},integration_version={integration_version},sdk_version={sdk_version}")
+        self.user_repository.user_version_report(ha_version, integration_version, sdk_version)
 
     def _update_device_list_info_cache(self, ids: list[str]):
         devices = self.device_repository.query_devices_by_ids(ids)
         for device in devices:
             self.device_map[device.id] = device
 
-    def _refresh_mq(self):
+    def refresh_mq(self):
         if self.mq is not None:
             self.mq.stop()
             self.mq = None
 
         home_ids = [home.id for home in self.user_homes]
-        device_ids = [device.id for device in self.device_map.values() if hasattr(device, "id")]
+        device = [device for device in self.device_map.values() if
+                  hasattr(device, "id") and getattr(device, "set_up", False)]
 
-        sharing_mq = SharingMQ(self.customer_api, home_ids, device_ids)
+        sharing_mq = SharingMQ(self.customer_api, home_ids, device)
         sharing_mq.start()
         sharing_mq.add_message_listener(self.on_message)
         self.mq = sharing_mq
@@ -141,11 +146,24 @@ class Manager:
         if not device:
             return
         logger.debug(f"mq _on_device_report-> {status}")
-        for item in status:
-            if "code" in item and "value" in item:
-                code = item["code"]
-                value = item["value"]
-                device.status[code] = value
+        if device.support_local:
+            for item in status:
+                if "dpId" in item and "value" in item:
+                    dp_id_item = device.local_strategy[item["dpId"]]
+                    strategy_name = dp_id_item["value_convert"]
+                    config_item = dp_id_item["config_item"]
+                    dp_item = (dp_id_item["status_code"], item["value"])
+                    logger.debug(
+                        f"mq _on_device_report before strategy convert strategy_name={strategy_name},dp_item={dp_item},config_item={config_item}")
+                    code, value = strategy.convert(strategy_name, dp_item, config_item)
+                    logger.debug(f"mq _on_device_report after strategy convert code={code},value={value}")
+                    device.status[code] = value
+        else:
+            for item in status:
+                if "code" in item and "value" in item:
+                    code = item["code"]
+                    value = item["value"]
+                    device.status[code] = value
 
         self.__update_device(device)
 
