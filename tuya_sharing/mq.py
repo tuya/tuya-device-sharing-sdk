@@ -67,9 +67,9 @@ class SharingMQ(threading.Thread):
                 dev_id = dev.id
                 subscribe_topic = self.mq_config.dev_topic.format(devId=dev_id)
                 if dev.support_local:
-                    subscribe_topic += "/1"
+                    subscribe_topic += "/pen"
                 else:
-                    subscribe_topic += "/0"
+                    subscribe_topic += "/sta"
                 mqttc.subscribe(subscribe_topic)
 
         elif rc == CONNECT_FAILED_NOT_AUTHORISED:
