@@ -65,21 +65,27 @@ class SharingMQ(threading.Thread):
                 mqttc.subscribe(self.mq_config.owner_topic.format(ownerId=owner_id))
             for dev in self.device:
                 dev_id = dev.id
-                subscribe_topic = self.mq_config.dev_topic.format(devId=dev_id)
-                if dev.support_local:
-                    subscribe_topic += "/pen"
-                else:
-                    subscribe_topic += "/sta"
-                mqttc.subscribe(subscribe_topic)
+                topic_str = self.subscribe_topic(dev_id, dev.support_local)
+                mqttc.subscribe(topic_str)
 
         elif rc == CONNECT_FAILED_NOT_AUTHORISED:
             self.__run_mqtt()
 
-    def subscribe_device(self, dev_id: str):
-        self.client.subscribe(self.mq_config.dev_topic.format(devId=dev_id))
+    def subscribe_device(self, dev_id: str, support_local: bool):
+        topic = self.subscribe_topic(dev_id, support_local)
+        self.client.subscribe(topic)
 
-    def un_subscribe_device(self, dev_id: str):
-        self.client.unsubscribe(self.mq_config.dev_topic.format(devId=dev_id))
+    def un_subscribe_device(self, dev_id: str, support_local: bool):
+        topic = self.subscribe_topic(dev_id, support_local)
+        self.client.unsubscribe(topic)
+
+    def subscribe_topic(self, dev_id: str, support_local: bool) -> str:
+        subscribe_topic = self.mq_config.dev_topic.format(devId=dev_id)
+        if support_local:
+            subscribe_topic += "/pen"
+        else:
+            subscribe_topic += "/sta"
+        return subscribe_topic
 
     def _on_message(self, mqttc: mqtt.Client, user_data: Any, msg: mqtt.MQTTMessage):
         logger.debug(f"payload-> {msg.payload}")
