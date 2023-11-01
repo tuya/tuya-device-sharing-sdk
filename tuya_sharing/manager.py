@@ -180,7 +180,7 @@ class Manager:
 
             if device_id in self.device_map.keys():
                 device = self.device_map.get(device_id)
-                self.mq.subscribe_device(device_id)
+                self.mq.subscribe_device(device_id, device.support_local)
                 for listener in self.device_listeners:
                     listener.add_device(device)
 
@@ -202,7 +202,7 @@ class Manager:
             pass
         elif biz_code == BIZCODE_DELETE:
             del self.device_map[device_id]
-            self.mq.un_subscribe_device(device_id)
+            self.mq.un_subscribe_device(device_id, device.support_local)
             for listener in self.device_listeners:
                 listener.remove_device(device.id)
 

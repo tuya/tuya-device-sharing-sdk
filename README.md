@@ -42,6 +42,12 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 
 ## Usage
 
+## Release Note
+
+| version | Description     |
+|---------|-----------------|
+| 0.1.8   | fix topic error |
+
 ## Installation
 
 `pip3 install tuya-device-sharing-sdk`
@@ -53,3 +59,4 @@ You can provide feedback on your issue via **Github Issue**.
 ## License
 
 **tuya-device-sharing-sdk** is available under the MIT license. Please see the [LICENSE](./LICENSE) file for more info.
+>>>>>>> main
