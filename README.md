@@ -44,9 +44,10 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 
 ## Release Note
 
-| version | Description     |
-|---------|-----------------|
-| 0.1.8   | fix topic error |
+| version | Description       |
+|---------|-------------------|
+| 0.1.8   | fix topic error   |
+| 0.1.9   | fix mq link id    |
 
 ## Installation
 
