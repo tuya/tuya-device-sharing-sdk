@@ -13,8 +13,6 @@ from urllib.parse import urlsplit
 import json
 import uuid
 
-LINK_ID = f"tuya-device-sharing-sdk-python.{uuid.uuid1()}"
-
 CONNECT_FAILED_NOT_AUTHORISED = 5
 
 
@@ -45,8 +43,9 @@ class SharingMQ(threading.Thread):
         self.device = device
 
     def _get_mqtt_config(self) -> SharingMQConfig:
+        link_id = f"tuya-device-sharing-sdk-python.{uuid.uuid1()}"
         response = self.api.post("/v1.0/m/life/ha/access/config", None,
-                                 {"linkId": LINK_ID})
+                                 {"linkId": link_id})
         if (response.get("success"), False) is False:
             raise Exception("get mqtt config error.")
 
@@ -71,8 +70,9 @@ class SharingMQ(threading.Thread):
         elif rc == CONNECT_FAILED_NOT_AUTHORISED:
             self.__run_mqtt()
 
-    def subscribe_device(self, dev_id: str, support_local: bool):
-        topic = self.subscribe_topic(dev_id, support_local)
+    def subscribe_device(self, dev_id: str, device: CustomerDevice):
+        self.device.append(device)
+        topic = self.subscribe_topic(dev_id, device.support_local)
         self.client.subscribe(topic)
 
     def un_subscribe_device(self, dev_id: str, support_local: bool):
