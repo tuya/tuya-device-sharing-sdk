@@ -157,6 +157,15 @@ class DeviceRepository:
                     support_local = False
                     break
                 # statusFormat valueDesc、valueType,enumMappingMap,pid
+
+                # Issue: as at 2024-02-13 the `enumMappingMap` for dpId==92 is not handling the format of data being received in CapWords format ie  `True` and `False` as apposed to `true` and `false`
+                # # workaround ----------------------------- start
+                # for the following dpId and enumMappingMap
+                if dp_status_relation["dpId"]==92 and dp_status_relation["enumMappingMap"]=={'false': {'code': 'pir', 'value': 'none'}, 'true': {'code': 'pir', 'value': 'pir'}}:
+                    # change keys to CapWords format
+                    dp_status_relation["enumMappingMap"]={'False': {'code': 'pir', 'value': 'none'}, 'True': {'code': 'pir', 'value': 'pir'}}
+                # # workaround ----------------------------- end
+
                 dp_id_map[dp_status_relation["dpId"]] = {
                     "value_convert": dp_status_relation["valueConvert"],
                     "status_code": dp_status_relation["statusCode"],
