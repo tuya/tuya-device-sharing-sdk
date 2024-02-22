@@ -62,10 +62,17 @@ class SharingMQ(threading.Thread):
         if rc == 0:
             for owner_id in self.owner_ids:
                 mqttc.subscribe(self.mq_config.owner_topic.format(ownerId=owner_id))
-            for dev in self.device:
-                dev_id = dev.id
-                topic_str = self.subscribe_topic(dev_id, dev.support_local)
-                mqttc.subscribe(topic_str)
+            batch_size = 20
+            for i in range(0, len(self.device), batch_size):
+                batch_devices = self.device[i:i + batch_size]
+                topics_to_subscribe = []
+                for dev in batch_devices:
+                    dev_id = dev.id
+                    topic_str = self.subscribe_topic(dev_id, dev.support_local)
+                    topics_to_subscribe.append((topic_str, 0))  # 指定主题和qos=0
+
+                if topics_to_subscribe:
+                    mqttc.subscribe(topics_to_subscribe)
 
         elif rc == CONNECT_FAILED_NOT_AUTHORISED:
             self.__run_mqtt()
