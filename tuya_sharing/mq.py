@@ -140,7 +140,7 @@ class SharingMQ(threading.Thread):
         self.client = mqttc
 
     def _start(self, mq_config: SharingMQConfig) -> mqtt.Client:
-        mqttc = mqtt.Client(mq_config.client_id)
+        mqttc = mqtt.Client(client_id=mq_config.client_id)
         mqttc.username_pw_set(mq_config.username, mq_config.password)
         mqttc.user_data_set({"mqConfig": mq_config})
         mqttc.on_connect = self._on_connect
