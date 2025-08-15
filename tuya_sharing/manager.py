@@ -177,8 +177,6 @@ class Manager:
                     value = item["value"]
                     device.status[code] = value
                     updated_status_properties.append(code)
-                    if t := item.get("t"):
-                        dp_timestamps[code] = t
 
         self.__update_device(device, updated_status_properties, dp_timestamps)
 
