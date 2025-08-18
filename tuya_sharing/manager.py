@@ -137,9 +137,14 @@ class Manager:
         except Exception as e:
             logger.error("on message error = %s", e)
 
-    def __update_device(self, device: CustomerDevice, updated_status_properties: list[str] | None = None):
+    def __update_device(
+        self,
+        device: CustomerDevice,
+        updated_status_properties: list[str] | None = None,
+        dp_timestamps: dict | None = None,
+    ):
         for listener in self.device_listeners:
-            listener.update_device(device, updated_status_properties)
+            listener.update_device(device, updated_status_properties, dp_timestamps)
 
     def _on_device_report(self, device_id: str, status: list):
         device = self.device_map.get(device_id, None)
@@ -147,9 +152,11 @@ class Manager:
             return
         logger.debug(f"mq _on_device_report-> {status}")
         updated_status_properties = []
+        dp_timestamps = {}
         value = None
         if device.support_local:
             for item in status:
+                # [{'dpId': 1, 't': 1752456620499, 'value': 120}]
                 if "dpId" in item and "value" in item:
                     dp_id_item = device.local_strategy[item["dpId"]]
                     strategy_name = dp_id_item["value_convert"]
@@ -161,6 +168,8 @@ class Manager:
                     logger.debug(f"mq _on_device_report after strategy convert code={code},value={value}")
                     device.status[code] = value
                     updated_status_properties.append(code)
+                    if t := item.get("t"):
+                        dp_timestamps[code] = t
         else:
             for item in status:
                 if "code" in item and "value" in item:
@@ -169,7 +178,7 @@ class Manager:
                     device.status[code] = value
                     updated_status_properties.append(code)
 
-        self.__update_device(device, updated_status_properties)
+        self.__update_device(device, updated_status_properties, dp_timestamps)
 
     def _on_device_other(self, device_id: str, biz_code: str, data: dict[str, Any]):
         logger.debug(f"mq _on_device_other-> {device_id} -- {biz_code}")
@@ -226,7 +235,12 @@ class SharingDeviceListener(metaclass=ABCMeta):
     """Sharing device listener."""
 
     @abstractclassmethod
-    def update_device(self, device: CustomerDevice, updated_status_properties: list[str] | None = None):
+    def update_device(
+        self,
+        device: CustomerDevice,
+        updated_status_properties: list[str] | None = None,
+        dp_timestamps: dict | None = None,
+    ) -> None:
         """Update device info.
 
         Args:
