@@ -50,6 +50,7 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 | 0.1.9   | fix mq link id                                         |
 | 0.2.0   | MQTT bulk subscription                                 |
 | 0.2.1   | add updated_status_properties to SharingDeviceListener |
+| 0.2.2   | add timestamp to SharingDeviceListener                 |
 
 ## Installation
 
