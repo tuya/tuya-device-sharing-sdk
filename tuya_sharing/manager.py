@@ -151,6 +151,11 @@ class Manager:
         if not device:
             return
         logger.debug(f"mq _on_device_report-> {status}")
+
+        # As the protocol is PROTOCOL_DEVICE_REPORT there does not appear to be `data['bizCode']`
+        # As we are getting a report declare this device online
+        device.online = True
+
         updated_status_properties = []
         dp_timestamps = {}
         value = None
