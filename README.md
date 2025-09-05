@@ -52,6 +52,7 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 | 0.2.1   | add updated_status_properties to SharingDeviceListener |
 | 0.2.2   | add timestamp to SharingDeviceListener                 |
 | 0.2.3   | fix paho-mqtt dependency                               |
+| 0.2.4   | fix asbtract decorator                                 |
 
 ## Installation
 

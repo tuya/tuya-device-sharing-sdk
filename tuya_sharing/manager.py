@@ -9,7 +9,7 @@ from .scenes import SceneRepository
 from .user import UserRepository
 from .strategy import strategy
 
-from abc import ABCMeta, abstractclassmethod
+from abc import ABCMeta, abstractmethod
 from .customerlogging import logger
 from .mq import SharingMQ
 import time
@@ -47,7 +47,7 @@ class Manager:
         self.user_homes: list[SmartLifeHome] = []
         self.home_repository = HomeRepository(self.customer_api)
         self.device_repository = DeviceRepository(self.customer_api)
-        self.device_listeners = set()
+        self.device_listeners: set[SharingDeviceListener] = set()
 
         self.mq = None
         self.scene_repository = SceneRepository(self.customer_api)
@@ -234,7 +234,7 @@ class Manager:
 class SharingDeviceListener(metaclass=ABCMeta):
     """Sharing device listener."""
 
-    @abstractclassmethod
+    @abstractmethod
     def update_device(
         self,
         device: CustomerDevice,
@@ -248,7 +248,7 @@ class SharingDeviceListener(metaclass=ABCMeta):
         """
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def add_device(self, device: CustomerDevice):
         """Device Added.
 
@@ -257,7 +257,7 @@ class SharingDeviceListener(metaclass=ABCMeta):
         """
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def remove_device(self, device_id: str):
         """Device removed.
 
