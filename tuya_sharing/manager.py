@@ -158,21 +158,21 @@ class Manager:
             for item in status:
                 # [{'dpId': 1, 't': 1752456620499, 'value': 120}]
                 if "dpId" in item and "value" in item:
-                    if item["dpId"] in device.local_strategy:
-                        dp_id_item = device.local_strategy[item["dpId"]]
-                        strategy_name = dp_id_item["value_convert"]
-                        config_item = dp_id_item["config_item"]
-                        dp_item = (dp_id_item["status_code"], item["value"])
-                        logger.debug(
-                            f"mq _on_device_report before strategy convert strategy_name={strategy_name},dp_item={dp_item},config_item={config_item}")
-                        code, value = strategy.convert(strategy_name, dp_item, config_item)
-                        logger.debug(f"mq _on_device_report after strategy convert code={code},value={value}")
-                        device.status[code] = value
-                        updated_status_properties.append(code)
-                        if t := item.get("t"):
-                            dp_timestamps[code] = t
-                    else:
-                        logger.warning(f"mq _on_device_report unknown dpId: {item['dpId']}")
+                    if item["dpId"] not in device.local_strategy:
+                        logger.debug(f"mq _on_device_report unknown dpId: {item['dpId']}")
+                        continue
+                    dp_id_item = device.local_strategy[item["dpId"]]
+                    strategy_name = dp_id_item["value_convert"]
+                    config_item = dp_id_item["config_item"]
+                    dp_item = (dp_id_item["status_code"], item["value"])
+                    logger.debug(
+                        f"mq _on_device_report before strategy convert strategy_name={strategy_name},dp_item={dp_item},config_item={config_item}")
+                    code, value = strategy.convert(strategy_name, dp_item, config_item)
+                    logger.debug(f"mq _on_device_report after strategy convert code={code},value={value}")
+                    device.status[code] = value
+                    updated_status_properties.append(code)
+                    if t := item.get("t"):
+                        dp_timestamps[code] = t
         else:
             for item in status:
                 if "code" in item and "value" in item:
