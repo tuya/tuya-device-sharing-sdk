@@ -158,6 +158,9 @@ class Manager:
             for item in status:
                 # [{'dpId': 1, 't': 1752456620499, 'value': 120}]
                 if "dpId" in item and "value" in item:
+                    if item["dpId"] not in device.local_strategy:
+                        logger.debug(f"mq _on_device_report unknown dpId: {item['dpId']}")
+                        continue
                     dp_id_item = device.local_strategy[item["dpId"]]
                     strategy_name = dp_id_item["value_convert"]
                     config_item = dp_id_item["config_item"]
