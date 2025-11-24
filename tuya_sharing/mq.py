@@ -5,7 +5,6 @@ import threading
 from .customerapi import CustomerApi
 from typing import Any, Callable
 from requests.exceptions import RequestException
-import time
 from .customerlogging import logger
 from .device import CustomerDevice
 from paho.mqtt import client as mqtt
@@ -119,13 +118,12 @@ class SharingMQ(threading.Thread):
                 backoff_seconds = 1
 
                 # reconnect every 2 hours required.
-                time.sleep(self.mq_config.expire_time - 60)
+                self._stop_event.wait(self.mq_config.expire_time - 60)
             except RequestException as e:
                 logger.exception(e)
                 logger.error(f"failed to refresh mqtt server, retrying in {backoff_seconds} seconds.")
 
-                time.sleep(backoff_seconds)
-                backoff_seconds = min(backoff_seconds * 2, 60)  # Try at most every 60 seconds to refresh
+                self._stop_event.wait(backoff_seconds)
 
     def __run_mqtt(self):
         mq_config = self._get_mqtt_config()
