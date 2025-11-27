@@ -5,15 +5,12 @@ import threading
 from .customerapi import CustomerApi
 from typing import Any, Callable
 from requests.exceptions import RequestException
-import time
 from .customerlogging import logger
 from .device import CustomerDevice
 from paho.mqtt import client as mqtt
 from urllib.parse import urlsplit
 import json
 import uuid
-
-LINK_ID = f"tuya-device-sharing-sdk-python.{uuid.uuid1()}"
 
 CONNECT_FAILED_NOT_AUTHORISED = 5
 
@@ -45,8 +42,9 @@ class SharingMQ(threading.Thread):
         self.device = device
 
     def _get_mqtt_config(self) -> SharingMQConfig:
+        link_id = f"tuya-device-sharing-sdk-python.{uuid.uuid1()}"
         response = self.api.post("/v1.0/m/life/ha/access/config", None,
-                                 {"linkId": LINK_ID})
+                                 {"linkId": link_id})
         if (response.get("success"), False) is False:
             raise Exception("get mqtt config error.")
 
@@ -63,16 +61,24 @@ class SharingMQ(threading.Thread):
         if rc == 0:
             for owner_id in self.owner_ids:
                 mqttc.subscribe(self.mq_config.owner_topic.format(ownerId=owner_id))
-            for dev in self.device:
-                dev_id = dev.id
-                topic_str = self.subscribe_topic(dev_id, dev.support_local)
-                mqttc.subscribe(topic_str)
+            batch_size = 20
+            for i in range(0, len(self.device), batch_size):
+                batch_devices = self.device[i:i + batch_size]
+                topics_to_subscribe = []
+                for dev in batch_devices:
+                    dev_id = dev.id
+                    topic_str = self.subscribe_topic(dev_id, dev.support_local)
+                    topics_to_subscribe.append((topic_str, 0))  # 指定主题和qos=0
+
+                if topics_to_subscribe:
+                    mqttc.subscribe(topics_to_subscribe)
 
         elif rc == CONNECT_FAILED_NOT_AUTHORISED:
             self.__run_mqtt()
 
-    def subscribe_device(self, dev_id: str, support_local: bool):
-        topic = self.subscribe_topic(dev_id, support_local)
+    def subscribe_device(self, dev_id: str, device: CustomerDevice):
+        self.device.append(device)
+        topic = self.subscribe_topic(dev_id, device.support_local)
         self.client.subscribe(topic)
 
     def un_subscribe_device(self, dev_id: str, support_local: bool):
@@ -118,7 +124,6 @@ class SharingMQ(threading.Thread):
                 logger.error(f"failed to refresh mqtt server, retrying in {backoff_seconds} seconds.")
 
                 self._stop_event.wait(backoff_seconds)
-                backoff_seconds = min(backoff_seconds * 2, 60)  # Try at most every 60 seconds to refresh
 
     def __run_mqtt(self):
         mq_config = self._get_mqtt_config()
@@ -133,7 +138,7 @@ class SharingMQ(threading.Thread):
         self.client = mqttc
 
     def _start(self, mq_config: SharingMQConfig) -> mqtt.Client:
-        mqttc = mqtt.Client(mq_config.client_id)
+        mqttc = mqtt.Client(client_id=mq_config.client_id)
         mqttc.username_pw_set(mq_config.username, mq_config.password)
         mqttc.user_data_set({"mqConfig": mq_config})
         mqttc.on_connect = self._on_connect

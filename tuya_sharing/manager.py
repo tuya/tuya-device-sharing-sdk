@@ -9,7 +9,7 @@ from .scenes import SceneRepository
 from .user import UserRepository
 from .strategy import strategy
 
-from abc import ABCMeta, abstractclassmethod
+from abc import ABCMeta, abstractmethod
 from .customerlogging import logger
 from .mq import SharingMQ
 import time
@@ -47,7 +47,7 @@ class Manager:
         self.user_homes: list[SmartLifeHome] = []
         self.home_repository = HomeRepository(self.customer_api)
         self.device_repository = DeviceRepository(self.customer_api)
-        self.device_listeners = set()
+        self.device_listeners: set[SharingDeviceListener] = set()
 
         self.mq = None
         self.scene_repository = SceneRepository(self.customer_api)
@@ -137,18 +137,30 @@ class Manager:
         except Exception as e:
             logger.error("on message error = %s", e)
 
-    def __update_device(self, device: CustomerDevice):
+    def __update_device(
+        self,
+        device: CustomerDevice,
+        updated_status_properties: list[str] | None = None,
+        dp_timestamps: dict | None = None,
+    ):
         for listener in self.device_listeners:
-            listener.update_device(device)
+            listener.update_device(device, updated_status_properties, dp_timestamps)
 
     def _on_device_report(self, device_id: str, status: list):
         device = self.device_map.get(device_id, None)
         if not device:
             return
         logger.debug(f"mq _on_device_report-> {status}")
+        updated_status_properties = []
+        dp_timestamps = {}
+        value = None
         if device.support_local:
             for item in status:
+                # [{'dpId': 1, 't': 1752456620499, 'value': 120}]
                 if "dpId" in item and "value" in item:
+                    if item["dpId"] not in device.local_strategy:
+                        logger.debug(f"mq _on_device_report unknown dpId: {item['dpId']}")
+                        continue
                     dp_id_item = device.local_strategy[item["dpId"]]
                     strategy_name = dp_id_item["value_convert"]
                     config_item = dp_id_item["config_item"]
@@ -158,14 +170,18 @@ class Manager:
                     code, value = strategy.convert(strategy_name, dp_item, config_item)
                     logger.debug(f"mq _on_device_report after strategy convert code={code},value={value}")
                     device.status[code] = value
+                    updated_status_properties.append(code)
+                    if t := item.get("t"):
+                        dp_timestamps[code] = t
         else:
             for item in status:
                 if "code" in item and "value" in item:
                     code = item["code"]
                     value = item["value"]
                     device.status[code] = value
+                    updated_status_properties.append(code)
 
-        self.__update_device(device)
+        self.__update_device(device, updated_status_properties, dp_timestamps)
 
     def _on_device_other(self, device_id: str, biz_code: str, data: dict[str, Any]):
         logger.debug(f"mq _on_device_other-> {device_id} -- {biz_code}")
@@ -180,7 +196,7 @@ class Manager:
 
             if device_id in self.device_map.keys():
                 device = self.device_map.get(device_id)
-                self.mq.subscribe_device(device_id, device.support_local)
+                self.mq.subscribe_device(device_id, device)
                 for listener in self.device_listeners:
                     listener.add_device(device)
 
@@ -221,8 +237,13 @@ class Manager:
 class SharingDeviceListener(metaclass=ABCMeta):
     """Sharing device listener."""
 
-    @abstractclassmethod
-    def update_device(self, device: CustomerDevice):
+    @abstractmethod
+    def update_device(
+        self,
+        device: CustomerDevice,
+        updated_status_properties: list[str] | None = None,
+        dp_timestamps: dict | None = None,
+    ) -> None:
         """Update device info.
 
         Args:
@@ -230,7 +251,7 @@ class SharingDeviceListener(metaclass=ABCMeta):
         """
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def add_device(self, device: CustomerDevice):
         """Device Added.
 
@@ -239,7 +260,7 @@ class SharingDeviceListener(metaclass=ABCMeta):
         """
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def remove_device(self, device_id: str):
         """Device removed.
 
