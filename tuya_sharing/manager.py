@@ -13,6 +13,7 @@ from abc import ABCMeta, abstractmethod
 from .customerlogging import logger
 from .mq import SharingMQ
 import time
+import json
 
 PROTOCOL_DEVICE_REPORT = 4
 PROTOCOL_OTHER = 20
@@ -168,6 +169,17 @@ class Manager:
                     logger.debug(
                         f"mq _on_device_report before strategy convert strategy_name={strategy_name},dp_item={dp_item},config_item={config_item}")
                     code, value = strategy.convert(strategy_name, dp_item, config_item)
+                    
+                    status_range = device.status_range.get(code, None)
+                    if status_range and status_range.type == "Enum":
+                        try:
+                            range_values = json.loads(status_range.values)
+                            if value not in range_values.get("range", []):
+                                logger.debug(f"mq _on_device_report value not in range value={value}")
+                                continue
+                        except (json.JSONDecodeError, TypeError) as err:
+                            logger.warning(f"mq _on_device_report failed to parse status_range values for {code}: {err}")
+                    
                     logger.debug(f"mq _on_device_report after strategy convert code={code},value={value}")
                     device.status[code] = value
                     updated_status_properties.append(code)
