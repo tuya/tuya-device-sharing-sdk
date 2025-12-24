@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Tuple, Dict
 
+from .const import DEFAULT_TIMEOUT
 from .customerapi import CustomerApi
 import requests
 
@@ -13,15 +14,27 @@ class LoginControl:
         self.session = requests.session()
 
     def qr_code(self, client_id: str, schema: str, user_code: str) -> Dict[str, Any]:
-        response = self.session.request("POST",
-                                        f"https://{URL_PATH}/v1.0/m/life/home-assistant/qrcode/tokens?clientid={client_id}&usercode={user_code}&schema={schema}",
-                                        params=None, json=None, headers=None)
+        response = self.session.request(
+            "POST",
+            f"https://{URL_PATH}/v1.0/m/life/home-assistant/qrcode/tokens?clientid={client_id}&usercode={user_code}&schema={schema}",
+            params=None,
+            json=None,
+            headers=None,
+            timeout=DEFAULT_TIMEOUT,
+        )
         return response.json()
 
-    def login_result(self, token: str, client_id: str, user_code: str) -> Tuple[bool, Dict[str, Any]]:
-        response = self.session.request("GET",
-                                        f"https://{URL_PATH}/v1.0/m/life/home-assistant/qrcode/tokens/{token}?clientid={client_id}&usercode={user_code}",
-                                        params=None, json=None, headers=None)
+    def login_result(
+        self, token: str, client_id: str, user_code: str
+    ) -> Tuple[bool, Dict[str, Any]]:
+        response = self.session.request(
+            "GET",
+            f"https://{URL_PATH}/v1.0/m/life/home-assistant/qrcode/tokens/{token}?clientid={client_id}&usercode={user_code}",
+            params=None,
+            json=None,
+            headers=None,
+            timeout=DEFAULT_TIMEOUT,
+        )
         response = response.json()
         if response.get("success"):
             ret = response.get("result", {})

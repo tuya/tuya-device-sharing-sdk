@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 import requests
+from .const import DEFAULT_TIMEOUT
 from .customerlogging import logger
 import json
 import hmac
@@ -105,7 +106,12 @@ class CustomerApi:
         headers["X-sign"] = sign
 
         response = self.session.request(
-            method, self.endpoint + path, params=params, json=body, headers=headers
+            method,
+            self.endpoint + path,
+            params=params,
+            json=body,
+            headers=headers,
+            timeout=DEFAULT_TIMEOUT,
         )
 
         if response.ok is False:
