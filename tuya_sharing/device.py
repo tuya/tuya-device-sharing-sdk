@@ -187,7 +187,7 @@ class DeviceRepository:
             - un_known: (unknown statistics type)
         """
         device_id = device.id
-        response = self.api.get(f"/v1.0/m/life/devices/{device_id}/report-type")
+        response = self.api.get(f"/v1.0/m/life/ha/{device_id}/dp-report-types")
         if response.get("success"):
             result = response.get("result", [])
             for item in result:
