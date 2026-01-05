@@ -45,7 +45,7 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 ## Release Note
 
 | version | Description                                            |
-| ------- | ------------------------------------------------------ |
+|---------|--------------------------------------------------------|
 | 0.1.8   | fix topic error                                        |
 | 0.1.9   | fix mq link id                                         |
 | 0.2.0   | MQTT bulk subscription                                 |
@@ -55,7 +55,7 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 | 0.2.4   | fix asbtract decorator                                 |
 | 0.2.5   | handle unknown dpid in_on_device_report #39            |
 | 0.2.6   | Cancel MQTT reconnect on stop #37                      |
-
+| 0.2.8   | Add report_type to device status  #51                  |
 
 ## Installation
 
