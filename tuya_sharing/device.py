@@ -34,11 +34,13 @@ class DeviceStatusRange(SimpleNamespace):
         code(str): status's code
         type(str): status's type, which may be Boolean, Integer, Enum, Json
         values(dict): status's value range
+        report_type(str): status's report type, which may be sum, minux, un_known
     """
 
     code: str
     type: str
     values: str
+    report_type: Optional[str] = None
 
 
 class CustomerDevice(SimpleNamespace):
@@ -123,6 +125,7 @@ class DeviceRepository:
                 device.status = status
                 self.update_device_specification(device)
                 self.update_device_strategy_info(device)
+                self.update_device_report_type(device)
                 _devices.append(device)
         return _devices
 
@@ -174,6 +177,28 @@ class DeviceRepository:
 
             logger.debug(
                 f"device status strategy dev_id = {device_id} support_local = {support_local} local_strategy = {dp_id_map}")
+
+    def update_device_report_type(self, device: CustomerDevice):
+        """Update the device status range with report type information.
+
+        report_type values:
+            - sum: (incremental)
+            - minux: (full)
+            - un_known: (unknown statistics type)
+        """
+        device_id = device.id
+        response = self.api.get(f"/v1.0/m/life/ha/{device_id}/dp-report-types")
+        if response.get("success"):
+            result = response.get("result", [])
+            for item in result:
+                dp_code = item.get("dp_code")
+                report_type = item.get("report_type")
+                if dp_code and dp_code in device.status_range:
+                    device.status_range[dp_code].report_type = report_type
+            logger.debug(
+                f"device report type dev_id = {device_id} result = {result}")
+
+
 
     def send_commands(self, device_id: str, commands: list[dict[str, Any]]):
         if self.filter.call(device_id, commands):
