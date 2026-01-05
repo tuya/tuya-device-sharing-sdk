@@ -23,7 +23,3 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
     if status_value is None:
         status_value = convert_default_value(config_item)
     return status_key, status_value
-
-
-
-

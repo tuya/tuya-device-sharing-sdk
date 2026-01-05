@@ -14,6 +14,7 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
     status_value = convert_value(dp_value)
     return status_key, status_value
 
+
 class DJV2MusicDataVO:
     def __init__(self):
         self.change_mode: Optional[str] = None
@@ -50,11 +51,7 @@ def convert_value(str_: str) -> str:
 def hex2decimal(hex_str: str) -> int:
     if not hex_str:
         return 0
-    hex_str = hex_str.lstrip('0')
+    hex_str = hex_str.lstrip("0")
     if not hex_str:
         return 0
     return int(hex_str, 16)
-
-
-
-

@@ -1,4 +1,5 @@
 """Customer API."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -28,8 +29,7 @@ class CustomerTokenInfo:
 
     def __init__(self, token_info: dict[str, Any] = None):
         self.expire_time = (
-                token_info.get("t", 0)
-                + token_info.get("expire_time", 0) * 1000
+            token_info.get("t", 0) + token_info.get("expire_time", 0) * 1000
         )
         self.uid = token_info.get("uid", "")
         self.access_token = token_info.get("access_token", "")
@@ -37,14 +37,13 @@ class CustomerTokenInfo:
 
 
 class CustomerApi:
-
     def __init__(
-            self,
-            token_info: CustomerTokenInfo,
-            client_id: str,
-            user_code: str,
-            end_point: str,
-            listener: SharingTokenListener
+        self,
+        token_info: CustomerTokenInfo,
+        client_id: str,
+        user_code: str,
+        end_point: str,
+        listener: SharingTokenListener,
     ):
         self.session = requests.session()
         self.token_info = token_info
@@ -55,20 +54,19 @@ class CustomerApi:
         self.token_listener = listener
 
     def __request(
-            self,
-            method: str,
-            path: str,
-            params: dict[str, Any] | None = None,
-            body: dict[str, Any] | None = None,
+        self,
+        method: str,
+        path: str,
+        params: dict[str, Any] | None = None,
+        body: dict[str, Any] | None = None,
     ) -> dict[str, Any] | None:
-
         self.refresh_access_token_if_need()
 
         rid = str(uuid.uuid4())
         sid = ""
         md5 = hashlib.md5()
         rid_refresh_token = rid + self.token_info.refresh_token
-        md5.update(rid_refresh_token.encode('utf-8'))
+        md5.update(rid_refresh_token.encode("utf-8"))
         hash_key = md5.hexdigest()
         secret = _secret_generating(rid, sid, hash_key)
 
@@ -76,17 +74,13 @@ class CustomerApi:
         if params is not None and len(params.keys()) > 0:
             query_encdata = _form_to_json(params)
             query_encdata = _aes_gcm_encrypt(query_encdata, secret)
-            params = {
-                "encdata": query_encdata
-            }
+            params = {"encdata": query_encdata}
             query_encdata = str(query_encdata, encoding="utf8")
         body_encdata = ""
         if body is not None and len(body.keys()) > 0:
             body_encdata = _form_to_json(body)
             body_encdata = _aes_gcm_encrypt(body_encdata, secret)
-            body = {
-                "encdata": str(body_encdata, encoding="utf8")
-            }
+            body = {"encdata": str(body_encdata, encoding="utf8")}
             body_encdata = str(body_encdata, encoding="utf8")
 
         t = int(time.time() * 1000)
@@ -99,10 +93,7 @@ class CustomerApi:
         if self.token_info is not None and len(self.token_info.access_token) > 0:
             headers["X-token"] = self.token_info.access_token
 
-        sign = _restful_sign(hash_key,
-                             query_encdata,
-                             body_encdata,
-                             headers)
+        sign = _restful_sign(hash_key, query_encdata, body_encdata, headers)
         headers["X-sign"] = sign
 
         response = self.session.request(
@@ -136,7 +127,6 @@ class CustomerApi:
         return ret
 
     def refresh_access_token_if_need(self):
-
         if self.refresh_token:
             return
 
@@ -157,7 +147,7 @@ class CustomerApi:
                     "expire_time": result["expireTime"],
                     "uid": result["uid"],
                     "access_token": result["accessToken"],
-                    "refresh_token": result["refreshToken"]
+                    "refresh_token": result["refreshToken"],
                 }
                 self.token_info = CustomerTokenInfo(token_info)
                 if self.token_listener is not None:
@@ -181,8 +171,12 @@ class CustomerApi:
         """
         return self.__request("GET", path, params, None)
 
-    def post(self, path: str, params: dict[str, Any] | None = None, body: dict[str, Any] | None = None) -> dict[
-        str, Any]:
+    def post(
+        self,
+        path: str,
+        params: dict[str, Any] | None = None,
+        body: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Http Post.
 
         Requests the server to update specified resources.
@@ -236,14 +230,14 @@ def _random_nonce(e=32):
 
 
 def _form_to_json(content: dict[str, Any] | None = None) -> str:
-    return json.dumps(content, separators=(',', ':'))
+    return json.dumps(content, separators=(",", ":"))
 
 
 def _aes_gcm_encrypt(raw_data: str, secret: str):
     nonce = _random_nonce(12)
-    raw_data = raw_data.encode('utf-8')
-    secret = secret.encode('utf-8')
-    nonce = nonce.encode('utf-8')
+    raw_data = raw_data.encode("utf-8")
+    secret = secret.encode("utf-8")
+    nonce = nonce.encode("utf-8")
     cipher = AESGCM(secret)
     ciphertext = cipher.encrypt(nonce, raw_data, None)
 
@@ -254,7 +248,7 @@ def _aex_gcm_decrypt(cipher_data: str, secret: str) -> str:
     cipher_data = base64.b64decode(cipher_data)
     nonce = cipher_data[:12]
     cipher_text = cipher_data[12:]
-    secret = secret.encode('utf-8')
+    secret = secret.encode("utf-8")
     cipher = AESGCM(secret)
     decrypt = cipher.decrypt(nonce, cipher_text, None)
     return str(decrypt, encoding="utf8")
@@ -274,9 +268,9 @@ def _secret_generating(rid, sid, hash_key) -> str:
         message += ecode
 
     if isinstance(message, str):
-        message = message.encode('utf-8')
+        message = message.encode("utf-8")
     if isinstance(rid, str):
-        rid = rid.encode('utf-8')
+        rid = rid.encode("utf-8")
 
     checksum = hmac.new(rid, message, hashlib.sha256)
     byte_temp = checksum.digest()
@@ -285,7 +279,9 @@ def _secret_generating(rid, sid, hash_key) -> str:
     return secret[:16]
 
 
-def _restful_sign(hash_key: str, query_encdata: str, body_encdata: str, data: dict[str, Any]) -> str:
+def _restful_sign(
+    hash_key: str, query_encdata: str, body_encdata: str, data: dict[str, Any]
+) -> str:
     headers = ["X-appKey", "X-requestId", "X-sid", "X-time", "X-token"]
     header_sign_str = ""
     for item in headers:
@@ -300,8 +296,8 @@ def _restful_sign(hash_key: str, query_encdata: str, body_encdata: str, data: di
     if body_encdata is not None and body_encdata != "":
         sign_str += body_encdata
 
-    sign_str = bytes(sign_str, 'utf-8')
-    hash_key = bytes(hash_key, 'utf-8')
+    sign_str = bytes(sign_str, "utf-8")
+    hash_key = bytes(hash_key, "utf-8")
 
     hash_value = hmac.new(hash_key, sign_str, hashlib.sha256)
     return hash_value.hexdigest()
@@ -309,6 +305,5 @@ def _restful_sign(hash_key: str, query_encdata: str, body_encdata: str, data: di
 
 class SharingTokenListener(metaclass=ABCMeta):
     def update_token(self, token_info: dict[str, Any]):
-        """Update token.
-        """
+        """Update token."""
         pass

@@ -19,7 +19,8 @@ def numDecodeToIntList(input):
     bytes = base64.b64decode(input)
     return [item & 0xFF for item in bytes]
 
-def convert_value(input, mark = True):
+
+def convert_value(input, mark=True):
     vos = []
     if mark:
         for i in range(0, len(input), 10):
@@ -41,13 +42,16 @@ def convert_value(input, mark = True):
             vos.append(tempVO)
     return json.dumps(vos)
 
+
 def integer2bool(integer):
     return integer > 0
 
+
 def int2weekArr2(input):
-    binary_str = format(input, 'b')[::-1]
-    week_days = [i for i, bit in enumerate(binary_str) if bit == '1']
+    binary_str = format(input, "b")[::-1]
+    week_days = [i for i, bit in enumerate(binary_str) if bit == "1"]
     return week_days
+
 
 def intArr2Str(high, low):
     res_int = high * 256 + low

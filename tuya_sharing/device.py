@@ -1,4 +1,5 @@
 """device api."""
+
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -108,7 +109,9 @@ class DeviceRepository:
         return self._query_devices(response)
 
     def query_devices_by_ids(self, ids: list) -> list[CustomerDevice]:
-        response = self.api.get("/v1.0/m/life/ha/devices/detail", {"devIds": ",".join(ids)})
+        response = self.api.get(
+            "/v1.0/m/life/ha/devices/detail", {"devIds": ",".join(ids)}
+        )
         return self._query_devices(response)
 
     def _query_devices(self, response) -> list[CustomerDevice]:
@@ -169,14 +172,15 @@ class DeviceRepository:
                         "valueType": dp_status_relation["valueType"],
                         "enumMappingMap": dp_status_relation["enumMappingMap"],
                         "pid": pid,
-                    }
+                    },
                 }
             device.support_local = support_local
             if support_local:
                 device.local_strategy = dp_id_map
 
             logger.debug(
-                f"device status strategy dev_id = {device_id} support_local = {support_local} local_strategy = {dp_id_map}")
+                f"device status strategy dev_id = {device_id} support_local = {support_local} local_strategy = {dp_id_map}"
+            )
 
     def update_device_report_type(self, device: CustomerDevice):
         """Update the device status range with report type information.
@@ -195,14 +199,13 @@ class DeviceRepository:
                 report_type = item.get("report_type")
                 if dp_code and dp_code in device.status_range:
                     device.status_range[dp_code].report_type = report_type
-            logger.debug(
-                f"device report type dev_id = {device_id} result = {result}")
-
-
+            logger.debug(f"device report type dev_id = {device_id} result = {result}")
 
     def send_commands(self, device_id: str, commands: list[dict[str, Any]]):
         if self.filter.call(device_id, commands):
-            self.api.post(f"/v1.1/m/thing/{device_id}/commands", None, {"commands": commands})
+            self.api.post(
+                f"/v1.1/m/thing/{device_id}/commands", None, {"commands": commands}
+            )
 
 
 class Filter:
@@ -214,8 +217,11 @@ class Filter:
     def clean_expired_keys(self):
         current_time = time.time()
         if current_time - self.last_clean_time >= 10:
-            expired_keys = [key for key, (_, last_time) in self.last_call_time.items() if
-                            current_time - last_time >= 10]
+            expired_keys = [
+                key
+                for key, (_, last_time) in self.last_call_time.items()
+                if current_time - last_time >= 10
+            ]
             for key in expired_keys:
                 del self.last_call_time[key]
             self.last_clean_time = current_time

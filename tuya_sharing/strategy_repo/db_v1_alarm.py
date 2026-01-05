@@ -23,21 +23,21 @@ def decode(input):
 
 def decode4HexStr(input):
     bytes = decode(input)
-    return ''.join(format(x, '02x') for x in bytes)
+    return "".join(format(x, "02x") for x in bytes)
 
 
 def averageStr(inputString, length):
     if length < 0:
         return None
 
-    return [inputString[i:i + length] for i in range(0, len(inputString), length)]
+    return [inputString[i : i + length] for i in range(0, len(inputString), length)]
 
 
 def hex2Decimal(hex):
     if not hex:
         return 0
 
-    hex = hex.lstrip('0')
+    hex = hex.lstrip("0")
     return int(hex, 16) if hex else 0
 
 
@@ -73,13 +73,13 @@ def convert_value(param):
         byId = DBV1AlarmSetElectricEnum.getById(alarmId)
         if byId is None:
             continue
-        vo['alarmCode'] = byId.value[1]
-        vo['doAction'] = hex2Decimal(string[2:4]) == 1
+        vo["alarmCode"] = byId.value[1]
+        vo["doAction"] = hex2Decimal(string[2:4]) == 1
         if byId.value[2] is not None:
             threshold = hex2Decimal(string[4:8]) / math.pow(10, byId.value[2])
             if byId.value[2] > 0:
-                vo['threshold'] = str(threshold)
+                vo["threshold"] = str(threshold)
             else:
-                vo['threshold'] = str(int(threshold))
+                vo["threshold"] = str(int(threshold))
         list.append(vo)
     return json.dumps(list)

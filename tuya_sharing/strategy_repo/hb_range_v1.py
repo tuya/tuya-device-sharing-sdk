@@ -12,16 +12,20 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
     status_value = convert_value(int(dp_value))
     return status_key, status_value
 
+
 import math
 
-def convert_value(input, t_min = 0, t_max = 100, i_min = 25, i_max = 255, mark = False):
+
+def convert_value(input, t_min=0, t_max=100, i_min=25, i_max=255, mark=False):
     input_num = input
     if input_num > i_max:
         input_num = i_max
     if input_num < i_min:
         input_num = i_min
 
-    num = (((t_max - t_min) * 1.0) / ((i_max - i_min) * 1.0)) * (input_num - i_min) + (t_min * 1.0)
+    num = (((t_max - t_min) * 1.0) / ((i_max - i_min) * 1.0)) * (input_num - i_min) + (
+        t_min * 1.0
+    )
 
     target = 0
     if mark:

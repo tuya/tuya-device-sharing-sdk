@@ -26,15 +26,14 @@ BIZCODE_DELETE = "delete"
 
 
 class Manager:
-
     def __init__(
-            self,
-            client_id: str,
-            user_code: str,
-            terminal_id: str,
-            end_point: str,
-            token_response: dict[str, Any] = None,
-            listener: SharingTokenListener = None,
+        self,
+        client_id: str,
+        user_code: str,
+        terminal_id: str,
+        end_point: str,
+        token_response: dict[str, Any] = None,
+        listener: SharingTokenListener = None,
     ) -> None:
         self.terminal_id = terminal_id
         self.customer_api = CustomerApi(
@@ -64,10 +63,15 @@ class Manager:
             for device in devices_by_home:
                 self.device_map[device.id] = device
 
-    def report_version(self, ha_version: str, integration_version: str, sdk_version: str):
+    def report_version(
+        self, ha_version: str, integration_version: str, sdk_version: str
+    ):
         logger.debug(
-            f"report version ha_version={ha_version},integration_version={integration_version},sdk_version={sdk_version}")
-        self.user_repository.user_version_report(ha_version, integration_version, sdk_version)
+            f"report version ha_version={ha_version},integration_version={integration_version},sdk_version={sdk_version}"
+        )
+        self.user_repository.user_version_report(
+            ha_version, integration_version, sdk_version
+        )
 
     def _update_device_list_info_cache(self, ids: list[str]):
         devices = self.device_repository.query_devices_by_ids(ids)
@@ -80,21 +84,22 @@ class Manager:
             self.mq = None
 
         home_ids = [home.id for home in self.user_homes]
-        device = [device for device in self.device_map.values() if
-                  hasattr(device, "id") and getattr(device, "set_up", False)]
+        device = [
+            device
+            for device in self.device_map.values()
+            if hasattr(device, "id") and getattr(device, "set_up", False)
+        ]
 
         sharing_mq = SharingMQ(self.customer_api, home_ids, device)
         sharing_mq.start()
         sharing_mq.add_message_listener(self.on_message)
         self.mq = sharing_mq
 
-    def send_commands(
-            self, device_id: str, commands: list[dict[str, Any]]
-    ):
+    def send_commands(self, device_id: str, commands: list[dict[str, Any]]):
         return self.device_repository.send_commands(device_id, commands)
 
     def get_device_stream_allocate(
-            self, device_id: str, stream_type: Literal["flv", "hls", "rtmp", "rtsp"]
+        self, device_id: str, stream_type: Literal["flv", "hls", "rtmp", "rtsp"]
     ) -> Optional[str]:
         """Get the live streaming address by device ID and the video type.
 
@@ -107,8 +112,11 @@ class Manager:
         Returns:
             None or URL to the requested stream
         """
-        response = self.customer_api.post(f"/v1.0/m/ipc/{device_id}/stream/actions/allocate", None,
-                                          {"type": stream_type})
+        response = self.customer_api.post(
+            f"/v1.0/m/ipc/{device_id}/stream/actions/allocate",
+            None,
+            {"type": stream_type},
+        )
         if response["success"]:
             return response["result"]["url"]
         return None
@@ -131,9 +139,14 @@ class Manager:
 
             if protocol == PROTOCOL_DEVICE_REPORT:
                 self._on_device_report(data["devId"], data["status"])
-            if protocol == PROTOCOL_OTHER and data['bizCode'] in [BIZCODE_DELETE, BIZCODE_BIND_USER,
-                                                                  BIZCODE_DPNAME_UPDATE, BIZCODE_NAME_UPDATE,
-                                                                  BIZCODE_OFFLINE, BIZCODE_ONLINE]:
+            if protocol == PROTOCOL_OTHER and data["bizCode"] in [
+                BIZCODE_DELETE,
+                BIZCODE_BIND_USER,
+                BIZCODE_DPNAME_UPDATE,
+                BIZCODE_NAME_UPDATE,
+                BIZCODE_OFFLINE,
+                BIZCODE_ONLINE,
+            ]:
                 self._on_device_other(data["bizData"]["devId"], data["bizCode"], data)
         except Exception as e:
             logger.error("on message error = %s", e)
@@ -160,27 +173,36 @@ class Manager:
                 # [{'dpId': 1, 't': 1752456620499, 'value': 120}]
                 if "dpId" in item and "value" in item:
                     if item["dpId"] not in device.local_strategy:
-                        logger.debug(f"mq _on_device_report unknown dpId: {item['dpId']}")
+                        logger.debug(
+                            f"mq _on_device_report unknown dpId: {item['dpId']}"
+                        )
                         continue
                     dp_id_item = device.local_strategy[item["dpId"]]
                     strategy_name = dp_id_item["value_convert"]
                     config_item = dp_id_item["config_item"]
                     dp_item = (dp_id_item["status_code"], item["value"])
                     logger.debug(
-                        f"mq _on_device_report before strategy convert strategy_name={strategy_name},dp_item={dp_item},config_item={config_item}")
+                        f"mq _on_device_report before strategy convert strategy_name={strategy_name},dp_item={dp_item},config_item={config_item}"
+                    )
                     code, value = strategy.convert(strategy_name, dp_item, config_item)
-                    
+
                     status_range = device.status_range.get(code, None)
                     if status_range and status_range.type == "Enum":
                         try:
                             range_values = json.loads(status_range.values)
                             if value not in range_values.get("range", []):
-                                logger.debug(f"mq _on_device_report value not in range value={value}")
+                                logger.debug(
+                                    f"mq _on_device_report value not in range value={value}"
+                                )
                                 continue
                         except (json.JSONDecodeError, TypeError) as err:
-                            logger.warning(f"mq _on_device_report failed to parse status_range values for {code}: {err}")
-                    
-                    logger.debug(f"mq _on_device_report after strategy convert code={code},value={value}")
+                            logger.warning(
+                                f"mq _on_device_report failed to parse status_range values for {code}: {err}"
+                            )
+
+                    logger.debug(
+                        f"mq _on_device_report after strategy convert code={code},value={value}"
+                    )
                     device.status[code] = value
                     updated_status_properties.append(code)
                     if t := item.get("t"):
