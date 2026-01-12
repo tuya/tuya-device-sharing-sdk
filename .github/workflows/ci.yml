@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+      - epenet-20251205-0824
+  pull_request: ~
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code from GitHub
+        uses: actions/checkout@v6.0.1
+      - name: Install Python
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: "3.13"
+      - name: Cache pre-commit dependencies
+        id: cache_pre_commit
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-pre-commit
+        with:
+          path: |
+            .pre_commit_venv 
+            ~/.cache/pre-commit
+          key: ${{ env.cache-name }}-${{ hashFiles('.pre-commit-config.yaml','~/.cache/pre-commit/*') }}
+      - name: Install pre-commit
+        if: steps.cache_pre_commit.outputs.cache-hit != 'true'
+        run: |
+          python -m venv .pre_commit_venv
+          . .pre_commit_venv/bin/activate
+          pip install --upgrade pip
+          pip install pre-commit
+          pre-commit install --install-hooks
+          pre-commit gc
+      - name: Run pre-commit hooks
+        run: |
+          . .pre_commit_venv/bin/activate  
+          pre-commit run --color=always --all-files
