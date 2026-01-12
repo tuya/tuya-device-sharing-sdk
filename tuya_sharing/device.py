@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from types import SimpleNamespace
 from typing import Any, Optional
 import time
@@ -103,6 +104,7 @@ class DeviceRepository:
     def __init__(self, customer_api: CustomerApi):
         self.api = customer_api
         self.filter = Filter(10)
+        self.device_post_init: Callable[[CustomerDevice], None] | None = None
 
     def query_devices_by_home(self, home_id: str) -> list[CustomerDevice]:
         response = self.api.get(f"/v1.0/m/life/ha/home/devices", {"homeId": home_id})
@@ -129,6 +131,8 @@ class DeviceRepository:
                 self.update_device_specification(device)
                 self.update_device_strategy_info(device)
                 self.update_device_report_type(device)
+                if self.device_post_init:
+                    self.device_post_init(device)
                 _devices.append(device)
         return _devices
 
