@@ -14,7 +14,7 @@ class HomeRepository:
         self.api = customer_api
 
     def query_homes(self) -> list[SmartLifeHome]:
-        response = self.api.get(f"/v1.0/m/life/users/homes")
+        response = self.api.get("/v1.0/m/life/users/homes")
 
         if response.get("success", False):
             _homes = []

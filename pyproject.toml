@@ -1,5 +1,4 @@
 [tool.ruff.lint]
 ignore = [
-    "F541",    # f-string without any placeholders
     "F841",    # Local variable is assigned to but never used
 ]
