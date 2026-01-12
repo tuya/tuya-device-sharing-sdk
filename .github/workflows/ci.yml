@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - dev
-      - main
-      - epenet-20251205-0824
   pull_request: ~
 
 jobs:

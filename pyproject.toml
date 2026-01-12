@@ -1,0 +1,8 @@
+[tool.ruff.lint]
+ignore = [
+    "E402",    # Module level import not at top of file
+    "E712",    # Avoid equality comparisons to `True`
+    "F401",    # Variable is shadowing a Python builtin
+    "F541",    # f-string without any placeholders
+    "F841",    # Local variable is assigned to but never used
+]
