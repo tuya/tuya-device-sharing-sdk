@@ -18,14 +18,14 @@ class DeviceFunction(SimpleNamespace):
         desc(str): function's description
         name(str): function's name
         type(str): function's type, which may be Boolean, Integer, Enum, Json
-        values(dict): function's value range
+        values(json str): function's value range
     """
 
     code: str
     desc: str
     name: str
     type: str
-    values: dict[str, Any]
+    values: str
 
 
 class DeviceStatusRange(SimpleNamespace):
@@ -34,7 +34,7 @@ class DeviceStatusRange(SimpleNamespace):
     Attributes:
         code(str): status's code
         type(str): status's type, which may be Boolean, Integer, Enum, Json
-        values(dict): status's value range
+        values(json str): status's value range
         report_type(str): status's report type, which may be sum, minux, un_known
     """
 
