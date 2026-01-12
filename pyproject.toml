@@ -1,6 +1,5 @@
 [tool.ruff.lint]
 ignore = [
-    "F401",    # Variable is shadowing a Python builtin
     "F541",    # f-string without any placeholders
     "F841",    # Local variable is assigned to but never used
 ]

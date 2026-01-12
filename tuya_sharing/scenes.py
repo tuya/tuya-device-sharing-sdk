@@ -1,7 +1,6 @@
 """Tuya scene api."""
 
 from types import SimpleNamespace
-from typing import Any
 from .customerapi import CustomerApi
 
 
