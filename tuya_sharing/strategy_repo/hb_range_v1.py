@@ -1,4 +1,5 @@
 import json
+import math
 from .. import strategy
 
 
@@ -11,9 +12,6 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
 
     status_value = convert_value(int(dp_value))
     return status_key, status_value
-
-
-import math
 
 
 def convert_value(input, t_min=0, t_max=100, i_min=25, i_max=255, mark=False):
