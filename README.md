@@ -56,6 +56,7 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 | 0.2.5   | handle unknown dpid in_on_device_report #39            |
 | 0.2.6   | Cancel MQTT reconnect on stop #37                      |
 | 0.2.8   | Add report_type to device status  #51                  |
+| 0.2.9   | Fix incorrect type hint in DeviceFunction #44 Add pre-commit workflow #46 Apply ruff format #47 |
 
 ## Installation
 
