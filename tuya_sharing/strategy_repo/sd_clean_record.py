@@ -24,30 +24,54 @@ def convert_value(string_value):
     else:
         return all_property_resolve(string_value)
 
+
 def clean_time_and_area_resolve(value):
     clean_time = int(value[:3])
     clean_area = int(value[3:6])
-    data = {"record_time": "", "clean_time": clean_time, "clean_area": clean_area, "map_id": ""}
+    data = {
+        "record_time": "",
+        "clean_time": clean_time,
+        "clean_area": clean_area,
+        "map_id": "",
+    }
     return json.dumps(data)
+
 
 def recored_and_clean_time_with_area_resolve(value):
     record_time = value[:12]
     clean_time = int(value[12:15])
     clean_area = int(value[15:18])
-    data = {"record_time": record_time, "clean_time": clean_time, "clean_area": clean_area, "map_id": ""}
+    data = {
+        "record_time": record_time,
+        "clean_time": clean_time,
+        "clean_area": clean_area,
+        "map_id": "",
+    }
     return json.dumps(data)
+
 
 def clean_time_and_area_with_map_resolve(value):
     clean_time = int(value[:3])
     clean_area = int(value[3:6])
     map_id = value[6:11]
-    data = {"record_time": "", "clean_time": clean_time, "clean_area": clean_area, "map_id": map_id}
+    data = {
+        "record_time": "",
+        "clean_time": clean_time,
+        "clean_area": clean_area,
+        "map_id": map_id,
+    }
     return json.dumps(data)
+
 
 def all_property_resolve(value):
     record_time = value[:12]
     clean_time = int(value[12:15])
     clean_area = int(value[15:18])
     map_id = value[18:23]
-    data = {"record_time": record_time, "clean_time": clean_time, "clean_area": clean_area, "map_id": map_id}
+    data = {
+        "record_time": record_time,
+        "clean_time": clean_time,
+        "clean_area": clean_area,
+        "map_id": map_id,
+    }
     return json.dumps(data)

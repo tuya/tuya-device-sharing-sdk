@@ -16,7 +16,6 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
     return status_key, status_value
 
 
-
 class TimerVO:
     def __init__(self, start_time, end_time):
         self.start_time = start_time
@@ -78,7 +77,7 @@ def average_str(input_string, string_length):
         return result
     input_len = len(input_string)
     for i in range(0, input_len, string_length):
-        chunk = input_string[i:i+string_length]
+        chunk = input_string[i : i + string_length]
         result.append(chunk)
     return result
 

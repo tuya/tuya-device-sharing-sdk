@@ -13,6 +13,7 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
     status_value = convert_value(dp_value)
     return status_key, status_value
 
+
 class DJV2ControlDataVO:
     def __init__(self):
         self.change_mode = ""
@@ -47,7 +48,3 @@ def hex2decimal(hex_str: str) -> int:
     if not hex_str:
         return 0
     return int(hex_str, 16)
-
-
-
-

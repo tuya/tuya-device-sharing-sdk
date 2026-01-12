@@ -1,4 +1,5 @@
 """Sharing Open IOT HUB which base on MQTT."""
+
 from __future__ import annotations
 
 import threading
@@ -31,7 +32,9 @@ class SharingMQConfig:
 
 
 class SharingMQ(threading.Thread):
-    def __init__(self, customer_api: CustomerApi, owner_ids: list, device: list[CustomerDevice]):
+    def __init__(
+        self, customer_api: CustomerApi, owner_ids: list, device: list[CustomerDevice]
+    ):
         super().__init__()
         self.api = customer_api
         self._stop_event = threading.Event()
@@ -43,8 +46,9 @@ class SharingMQ(threading.Thread):
 
     def _get_mqtt_config(self) -> SharingMQConfig:
         link_id = f"tuya-device-sharing-sdk-python.{uuid.uuid1()}"
-        response = self.api.post("/v1.0/m/life/ha/access/config", None,
-                                 {"linkId": link_id})
+        response = self.api.post(
+            "/v1.0/m/life/ha/access/config", None, {"linkId": link_id}
+        )
         if (response.get("success"), False) is False:
             raise Exception("get mqtt config error.")
 
@@ -63,7 +67,7 @@ class SharingMQ(threading.Thread):
                 mqttc.subscribe(self.mq_config.owner_topic.format(ownerId=owner_id))
             batch_size = 20
             for i in range(0, len(self.device), batch_size):
-                batch_devices = self.device[i:i + batch_size]
+                batch_devices = self.device[i : i + batch_size]
                 topics_to_subscribe = []
                 for dev in batch_devices:
                     dev_id = dev.id
@@ -121,7 +125,9 @@ class SharingMQ(threading.Thread):
                 self._stop_event.wait(self.mq_config.expire_time - 60)
             except RequestException as e:
                 logger.exception(e)
-                logger.error(f"failed to refresh mqtt server, retrying in {backoff_seconds} seconds.")
+                logger.error(
+                    f"failed to refresh mqtt server, retrying in {backoff_seconds} seconds."
+                )
 
                 self._stop_event.wait(backoff_seconds)
 

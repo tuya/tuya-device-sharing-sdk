@@ -50,14 +50,24 @@ class UserRepository:
 
     def unload(self, terminal_id: str):
         self.api.refresh_access_token_if_need()
-        self.api.post("/v1.0/m/token/terminal/expire", None, {
-            "accessToken": self.api.token_info.access_token,
-            "terminalId": terminal_id
-        })
+        self.api.post(
+            "/v1.0/m/token/terminal/expire",
+            None,
+            {
+                "accessToken": self.api.token_info.access_token,
+                "terminalId": terminal_id,
+            },
+        )
 
-    def user_version_report(self, system_version: str, ty_plugin_version: str, ty_sdk_version: str):
-        self.api.post("/v1.0/m/life/home-assistant/qrcode/versions", None, {
-            "system_version": system_version,
-            "ty_plugin_version": ty_plugin_version,
-            "ty_sdk_version": ty_sdk_version
-        })
+    def user_version_report(
+        self, system_version: str, ty_plugin_version: str, ty_sdk_version: str
+    ):
+        self.api.post(
+            "/v1.0/m/life/home-assistant/qrcode/versions",
+            None,
+            {
+                "system_version": system_version,
+                "ty_plugin_version": ty_plugin_version,
+                "ty_sdk_version": ty_sdk_version,
+            },
+        )

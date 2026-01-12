@@ -14,14 +14,16 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
     return status_key, status_value
 
 
-def convert_value(input, t_min = 1000, t_max = 12000, i_min = 0, i_max = 255, mark = False):
+def convert_value(input, t_min=1000, t_max=12000, i_min=0, i_max=255, mark=False):
     input_num = input
     if input_num > i_max:
         input_num = i_max
     if input_num < i_min:
         input_num = i_min
 
-    num = (((t_max - t_min) * 1.0) / ((i_max - i_min) * 1.0)) * (input_num - i_min) + (t_min * 1.0)
+    num = (((t_max - t_min) * 1.0) / ((i_max - i_min) * 1.0)) * (input_num - i_min) + (
+        t_min * 1.0
+    )
 
     target = 0
     if mark:

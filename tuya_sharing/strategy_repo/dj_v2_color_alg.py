@@ -16,7 +16,9 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
 
 
 class DJV2ColourDataVO:
-    def __init__(self, h: Optional[int] = None, s: Optional[int] = None, v: Optional[int] = None):
+    def __init__(
+        self, h: Optional[int] = None, s: Optional[int] = None, v: Optional[int] = None
+    ):
         self.h = h
         self.s = s
         self.v = v

@@ -1,6 +1,7 @@
 import json
 from enum import Enum
 
+
 class CMDCCodeEnum(Enum):
     switch = 1
     switchOne = 2
@@ -21,10 +22,12 @@ class CMDCCodeEnum(Enum):
     ledMode = 20
     lowOil = 21
 
+
 class CMDCStatusVO:
     def __init__(self, cmdcCodeEnum, type):
         self.cmdcCodeEnum = cmdcCodeEnum
         self.type = type
+
 
 status2CMDCCodeMap = {
     "switch": CMDCStatusVO(CMDCCodeEnum.switch, 1),
@@ -45,7 +48,7 @@ status2CMDCCodeMap = {
     "mode": CMDCStatusVO(CMDCCodeEnum.mode, 2),
     "countdown": CMDCStatusVO(CMDCCodeEnum.countDown, 3),
     "moodlighting": CMDCStatusVO(CMDCCodeEnum.ledMode, 2),
-    "switch_sound": CMDCStatusVO(CMDCCodeEnum.switchSound, 1)
+    "switch_sound": CMDCStatusVO(CMDCCodeEnum.switchSound, 1),
 }
 
 
@@ -56,11 +59,15 @@ def custom_convert(status_item, config_item):
 
     cmdc_status_vo = status2CMDCCodeMap.get(status_code)
     status_code = cmdc_status_vo.cmdcCodeEnum.name
-    if cmdc_status_vo.type == 1: # Boolean 类型
+    if cmdc_status_vo.type == 1:  # Boolean 类型
         if status_code == "switch_1" and config_item["pid"] == "of3pvbtfmg5jdw7o":
             status_code = CMDCCodeEnum.switch.name
-            status_value = 1 if status_value == True or status_value == "true" or status_value == 1 else 0
-    elif cmdc_status_vo.type == 2: # Enum 类型
+            status_value = (
+                1
+                if status_value == True or status_value == "true" or status_value == 1
+                else 0
+            )
+    elif cmdc_status_vo.type == 2:  # Enum 类型
         if status_code == "moodlighting":
             if is_integer(str(status_value)):
                 status_value = int(status_value)
@@ -81,7 +88,7 @@ def custom_convert(status_item, config_item):
                 return status_item
         else:
             return status_item
-    elif cmdc_status_vo.type == 3: # 数值类型
+    elif cmdc_status_vo.type == 3:  # 数值类型
         if status_code == "bright_value":
             status_value = get_common_brightness_value(status_value, 25, 255)
         elif status_code == "bright_value_v2":
@@ -105,7 +112,7 @@ def custom_convert(status_item, config_item):
                 return status_item
         else:
             return status_item
-    elif cmdc_status_vo.type == 4: # 特殊类型
+    elif cmdc_status_vo.type == 4:  # 特殊类型
         if status_code == "colour_data" or status_code == "colour_data_v2":
             if status_value is None:
                 return status_item
@@ -116,7 +123,11 @@ def custom_convert(status_item, config_item):
                     my_json = json.loads(str(status_value))
                     v = int(my_json["v"])
                     if status_code == "colour_data":
-                        status_value = (v * 100 / 255) if (v * 100 % 255 == 0) else (v * 100 / 255 + 1)
+                        status_value = (
+                            (v * 100 / 255)
+                            if (v * 100 % 255 == 0)
+                            else (v * 100 / 255 + 1)
+                        )
                     else:
                         status_value = v / 10
                 else:
@@ -159,10 +170,12 @@ class SkillItemVO:
 
 
 class SkillCodeVO:
-    def __init__(self, skillCodeEnum=None, name=None, type=None, desc=None, descEn=None):
+    def __init__(
+        self, skillCodeEnum=None, name=None, type=None, desc=None, descEn=None
+    ):
         if skillCodeEnum:
             self.name = skillCodeEnum.name
-            self.type = None # Replace with appropriate conversion method for ValueType
+            self.type = None  # Replace with appropriate conversion method for ValueType
             self.desc = skillCodeEnum.value["desc"]
             self.descEn = skillCodeEnum.value["descEn"]
         if name and type and desc and descEn:
@@ -186,36 +199,61 @@ def get_skill_vo(pid, status_dto):
             h = jsonObject["h"]
             s = jsonObject["s"]
             v = jsonObject["v"]
-            if ((s < 30 and 221 <= v <= 255) and status_code == 'colour_data') or \
-                ((s < 227 and 866 <= v <= 1000) and status_code == 'colour_data_v2') or \
-                ((s < 60 and 221 <= v <= 255) and status_code == 'colour_data_hsv'):
+            if (
+                ((s < 30 and 221 <= v <= 255) and status_code == "colour_data")
+                or ((s < 227 and 866 <= v <= 1000) and status_code == "colour_data_v2")
+                or ((s < 60 and 221 <= v <= 255) and status_code == "colour_data_hsv")
+            ):
                 return get_skill_item_vo(SkillCodeVO(SkillCodeEnum.Color), "white")
             else:
-                if   0 <= h <= 5 or 358 <= h <= 360: color = "red"
-                elif 6 <= h <= 16: color = "orange"
-                elif 17 <= h <= 26: color = "yellow"
-                elif 27 <= h <= 32: color = "golden"
-                elif 33 <= h <= 68: color = "yellow"
-                elif 69 <= h <= 133: color = "green"
-                elif 134 <= h <= 208: color = "cyan"
-                elif 209 <= h <= 260: color = "blue"
-                elif 261 <= h <= 316: color = "purple"
-                elif 317 <= h <= 357: color = "pink"
-                else: return None
+                if 0 <= h <= 5 or 358 <= h <= 360:
+                    color = "red"
+                elif 6 <= h <= 16:
+                    color = "orange"
+                elif 17 <= h <= 26:
+                    color = "yellow"
+                elif 27 <= h <= 32:
+                    color = "golden"
+                elif 33 <= h <= 68:
+                    color = "yellow"
+                elif 69 <= h <= 133:
+                    color = "green"
+                elif 134 <= h <= 208:
+                    color = "cyan"
+                elif 209 <= h <= 260:
+                    color = "blue"
+                elif 261 <= h <= 316:
+                    color = "purple"
+                elif 317 <= h <= 357:
+                    color = "pink"
+                else:
+                    return None
                 return get_skill_item_vo(SkillCodeVO(SkillCodeEnum.Color), color)
         except Exception as e:
-            print("Color e: ", e, ", pid: ", pid, ", value: ", status_value) # Replace with your logging mechanism
+            print(
+                "Color e: ", e, ", pid: ", pid, ", value: ", status_value
+            )  # Replace with your logging mechanism
     elif is_integer(str(status_value)):
         num = int(status_value)
-        if   0 <= num <= 3: color = "red"
-        elif 4 <= num <= 6: color = "orange"
-        elif 7 <= num <= 27: color = "pink"
-        elif 28 <= num <= 60: color = "purple"
-        elif 61 <= num <= 80: color = "blue"
-        elif 81 <= num <= 125: color = "cyan"
-        elif 126 <= num <= 233: color = "green"
-        elif 234 <= num <= 249: color = "yellow"
-        elif 250 <= num <= 255: color = "golden"
-        else: return None
+        if 0 <= num <= 3:
+            color = "red"
+        elif 4 <= num <= 6:
+            color = "orange"
+        elif 7 <= num <= 27:
+            color = "pink"
+        elif 28 <= num <= 60:
+            color = "purple"
+        elif 61 <= num <= 80:
+            color = "blue"
+        elif 81 <= num <= 125:
+            color = "cyan"
+        elif 126 <= num <= 233:
+            color = "green"
+        elif 234 <= num <= 249:
+            color = "yellow"
+        elif 250 <= num <= 255:
+            color = "golden"
+        else:
+            return None
         return get_skill_item_vo(SkillCodeVO(SkillCodeEnum.Color), color)
     return get_skill_item_vo(SkillCodeVO(SkillCodeEnum.Color), status_value)

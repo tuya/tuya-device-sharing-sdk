@@ -14,6 +14,7 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
     status_value = convert_value(dp_value)
     return status_key, status_value
 
+
 class DJV2SceneUnitVO:
     def __init__(self):
         self.unit_switch_duration = 0
@@ -25,10 +26,12 @@ class DJV2SceneUnitVO:
         self.bright = 0
         self.temperature = 0
 
+
 class DJV2SceneDataVO:
     def __init__(self):
         self.scene_num = 0
         self.scene_units = []
+
 
 def hex2decimal(hex_str: str) -> int:
     if not hex_str:
@@ -38,6 +41,7 @@ def hex2decimal(hex_str: str) -> int:
         return 0
     return int(hex_str, 16)
 
+
 def convert_value(str: str) -> str:
     vo = DJV2SceneDataVO()
     vo.scene_num = 1 + hex2decimal(str[:2])
@@ -45,7 +49,7 @@ def convert_value(str: str) -> str:
     unit_str = str[2:]
     num = len(unit_str) // 26
     for i in range(num):
-        item = unit_str[i * 26:(i + 1) * 26]
+        item = unit_str[i * 26 : (i + 1) * 26]
         unit_vo = DJV2SceneUnitVO()
         unit_vo.unit_switch_duration = hex2decimal(item[:2])
         unit_vo.unit_gradient_duration = hex2decimal(item[2:4])
@@ -64,7 +68,3 @@ def convert_value(str: str) -> str:
         scene_units.append(unit_vo)
     vo.scene_units = scene_units
     return json.dumps(vo.__dict__, default=lambda o: o.__dict__)
-
-
-
-

@@ -18,14 +18,17 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
 def decode(input: str) -> bytes:
     return base64.b64decode(input)
 
+
 def decode4hex_str(input: str) -> str:
     bytes_data = decode(input)
-    return ''.join(f'{byte:02x}' for byte in bytes_data)
+    return "".join(f"{byte:02x}" for byte in bytes_data)
+
 
 class DBV1FrozenTimeVO:
     def __init__(self, day=0, hour=0):
         self.day = day
         self.hour = hour
+
 
 def hex2decimal(hex_str: str) -> int:
     if not hex_str:
@@ -34,6 +37,7 @@ def hex2decimal(hex_str: str) -> int:
     if not hex_str:
         return 0
     return int(hex_str, 16)
+
 
 def convert_value(str: str) -> str:
     vo = DBV1FrozenTimeVO()

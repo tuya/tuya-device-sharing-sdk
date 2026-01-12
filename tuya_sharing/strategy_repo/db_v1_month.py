@@ -15,21 +15,26 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
     status_value = convert_value(decode4hex_str(dp_value))
     return status_key, status_value
 
+
 def decode(input: str) -> bytes:
     return base64.b64decode(input)
 
+
 def decode4hex_str(input: str) -> str:
     bytes_data = decode(input)
-    return ''.join(f'{byte:02x}' for byte in bytes_data)
+    return "".join(f"{byte:02x}" for byte in bytes_data)
 
 
 class DBV1MonthElectricDataVO:
-    def __init__(self, start_year=0, start_month=0, end_year=0, end_month=0, electric_total=0.0):
+    def __init__(
+        self, start_year=0, start_month=0, end_year=0, end_month=0, electric_total=0.0
+    ):
         self.startYear = start_year
         self.startMonth = start_month
         self.endYear = end_year
         self.endMonth = end_month
         self.electricTotal = electric_total
+
 
 def hex2decimal(hex_str: str) -> int:
     if not hex_str:
@@ -38,6 +43,7 @@ def hex2decimal(hex_str: str) -> int:
     if not hex_str:
         return 0
     return int(hex_str, 16)
+
 
 def convert_value(str: str) -> str:
     vo = DBV1MonthElectricDataVO()

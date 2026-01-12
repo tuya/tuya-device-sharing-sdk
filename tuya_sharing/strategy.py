@@ -11,6 +11,7 @@ class Strategy(object):
         def decorator(func):
             self._strategies[name] = func
             return func
+
         return decorator
 
     def convert(self, name, *args, **kwargs):
@@ -23,6 +24,7 @@ class Strategy(object):
         # _, config_item = args
         # status_item = custom_convert(status_item, config_item)
         # return status_item
+
 
 # singleton
 strategy = Strategy()
@@ -38,11 +40,13 @@ class CMDCCodeEnum(Enum):
     switchUsbOne = 5
     # ... (以此类推)
 
+
 # 定义类
 class CMDCStatusVO:
     def __init__(self, cmdcCodeEnum, type):
         self.cmdcCodeEnum = cmdcCodeEnum
         self.type = type
+
 
 # 初始化字典
 status2CMDCCodeMap = {}
@@ -52,8 +56,8 @@ status2CMDCCodeMap["switch_1"] = CMDCStatusVO(CMDCCodeEnum.switchOne, 1)
 # ... (以此类推)
 
 
-
 if __name__ == "__main__":
+
     @strategy.register("f1")
     def f1():
         print("f1")

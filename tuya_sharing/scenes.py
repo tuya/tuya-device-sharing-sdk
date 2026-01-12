@@ -39,5 +39,7 @@ class SceneRepository:
         return _scenes
 
     def trigger_scene(self, home_id: str, scene_id: str):
-        response = self.api.post("/v1.0/m/scene/ha/trigger", None, {"homeId": home_id, "sceneId": scene_id})
+        response = self.api.post(
+            "/v1.0/m/scene/ha/trigger", None, {"homeId": home_id, "sceneId": scene_id}
+        )
         return response["result"]

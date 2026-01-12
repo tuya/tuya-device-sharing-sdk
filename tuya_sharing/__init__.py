@@ -22,7 +22,7 @@ __all__ = [
     "LoginControl",
     "SceneRepository",
     "UserRepository",
-    "strategy"
+    "strategy",
 ]
 
 __version__ = VERSION

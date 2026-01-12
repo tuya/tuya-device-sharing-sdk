@@ -16,7 +16,12 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
 
 
 class DJHsvVO:
-    def __init__(self, h: Optional[float] = None, s: Optional[float] = None, v: Optional[float] = None):
+    def __init__(
+        self,
+        h: Optional[float] = None,
+        s: Optional[float] = None,
+        v: Optional[float] = None,
+    ):
         self.h = h
         self.s = s
         self.v = v

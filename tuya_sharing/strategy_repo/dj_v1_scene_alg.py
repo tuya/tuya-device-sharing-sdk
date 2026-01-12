@@ -3,6 +3,7 @@ from typing import List, Dict
 import colorsys
 from .. import strategy
 
+
 @strategy.register("dj_v1_scene_alg")
 def convert(dp_item: tuple, config_item: dict) -> tuple:
     dp_key, dp_value = dp_item
@@ -23,8 +24,15 @@ class DJHsvVO:
     def __repr__(self):
         return f"DJHsvVO(h={self.h}, s={self.s}, v={self.v})"
 
+
 class DJV1SceneVO:
-    def __init__(self, frequency: int = None, bright: int = None, temperature: int = None, hsv: List[DJHsvVO] = None):
+    def __init__(
+        self,
+        frequency: int = None,
+        bright: int = None,
+        temperature: int = None,
+        hsv: List[DJHsvVO] = None,
+    ):
         self.frequency = frequency
         self.bright = bright
         self.temperature = temperature
@@ -33,19 +41,24 @@ class DJV1SceneVO:
     def __repr__(self):
         return f"DJV1SceneVO(frequency={self.frequency}, bright={self.bright}, temperature={self.temperature}, hsv={self.hsv})"
 
+
 def hex2decimal(hex_str: str) -> int:
     return int(hex_str, 16)
 
+
 def split_str_by_width(s: str, width: int) -> List[str]:
-    return [s[i:i+width] for i in range(0, len(s), width)]
+    return [s[i : i + width] for i in range(0, len(s), width)]
+
 
 def rgb2hsv_standard(r: int, g: int, b: int) -> Dict[str, float]:
     hsv = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
     hsv_map = {"H": hsv[0], "S": hsv[1], "V": hsv[2]}
     return hsv_map
 
+
 def scale_round(value: float, scale: int) -> float:
     return round(value, scale)
+
 
 def convert_value(str_colour_value: str) -> str:
     if not str_colour_value:

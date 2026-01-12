@@ -20,19 +20,24 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
 def decode(input_str):
     return base64.b64decode(input_str)
 
-DBV1PowerAndTimeVO = namedtuple('DBV1PowerAndTimeVO', ['power', 'year', 'month', 'date', 'hour', 'minute', 'second'])
+
+DBV1PowerAndTimeVO = namedtuple(
+    "DBV1PowerAndTimeVO", ["power", "year", "month", "date", "hour", "minute", "second"]
+)
+
 
 def convert_value(str_input):
     res = DBV1PowerAndTimeVO(
-        power = hex2dec(str_input[:8]) / 100.0,
-        year = hex2dec(str_input[8:10]),
-        month = hex2dec(str_input[10:12]),
-        date = hex2dec(str_input[12:14]),
-        hour = hex2dec(str_input[14:16]),
-        minute = hex2dec(str_input[16:18]),
-        second = hex2dec(str_input[18:20])
+        power=hex2dec(str_input[:8]) / 100.0,
+        year=hex2dec(str_input[8:10]),
+        month=hex2dec(str_input[10:12]),
+        date=hex2dec(str_input[12:14]),
+        hour=hex2dec(str_input[14:16]),
+        minute=hex2dec(str_input[16:18]),
+        second=hex2dec(str_input[18:20]),
     )
     return json.dumps(res._asdict())
+
 
 def average_str(input_string, length):
     if length < 0:
@@ -44,7 +49,7 @@ def average_str(input_string, length):
         if cur + length > str_len:
             cur += length
             continue
-        str_val = input_string[cur:cur+length]
+        str_val = input_string[cur : cur + length]
         res.append(str_val)
         cur += length
     return res
@@ -53,7 +58,7 @@ def average_str(input_string, length):
 def hex2dec(hex_str):
     if not hex_str:
         return 0
-    hex_input = re.sub('^0+', '', hex_str)
+    hex_input = re.sub("^0+", "", hex_str)
     if not hex_input:
         return 0
     return int(hex_input, 16)

@@ -14,6 +14,7 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
     status_value = convert_value(dp_value)
     return status_key, status_value
 
+
 class DJHsvVO:
     def __init__(self, h=0, s=0, v=0):
         self.h = h
@@ -23,16 +24,19 @@ class DJHsvVO:
     def __str__(self):
         return f"DJHsvVO{{h={self.h}, s={self.s}, v={self.v}}}"
 
+
 class HSVColorVO:
     def __init__(self, hue=0, saturation=0, brightness=0):
         self.hue = hue
         self.saturation = saturation
         self.brightness = brightness
 
+
 def add_zero(s, length):
     while len(s) < length:
         s = "0" + s
     return s
+
 
 def convert_value(str_colour_value):
     if str_colour_value[6:] == "0168ffff":
@@ -49,7 +53,7 @@ def convert_value(str_colour_value):
         hsv_vo = DJHsvVO(
             h=round(hsv_map["H"] * 360, 1),
             s=round(hsv_map["S"] * 255, 1),
-            v=round(hsv_map["V"] * 255, 1)
+            v=round(hsv_map["V"] * 255, 1),
         )
 
         return json.dumps(hsv_vo.__dict__)
@@ -57,16 +61,16 @@ def convert_value(str_colour_value):
     vo = get_hsv_from_color_dp_value(str_colour_value)
 
     hsv_vo = DJHsvVO(
-        h=vo.hue,
-        s=round(vo.saturation * 255, 1),
-        v=round(vo.brightness * 255, 1)
+        h=vo.hue, s=round(vo.saturation * 255, 1), v=round(vo.brightness * 255, 1)
     )
 
     return json.dumps(hsv_vo.__dict__)
 
+
 def rgb2hsv_standard(red, green, blue):
     hsv = colorsys.rgb_to_hsv(red / 255, green / 255, blue / 255)
     return {"H": hsv[0], "S": hsv[1], "V": hsv[2]}
+
 
 def get_hsv_from_color_dp_value(dp_value):
     hh_hex = dp_value[6:8]
@@ -83,10 +87,6 @@ def get_hsv_from_color_dp_value(dp_value):
     s = int(s_hex, 16) / 255
     v = int(v_hex, 16) / 255
 
-    hsv_color_vo = HSVColorVO(
-        hue=h,
-        saturation=round(s, 4),
-        brightness=round(v, 4)
-    )
+    hsv_color_vo = HSVColorVO(hue=h, saturation=round(s, 4), brightness=round(v, 4))
 
     return hsv_color_vo
