@@ -6,6 +6,7 @@ from typing import Any
 import requests
 from .const import DEFAULT_TIMEOUT
 from .customerlogging import logger
+from .exceptions import ApiRequestException
 import json
 import hmac
 import hashlib
@@ -115,7 +116,7 @@ class CustomerApi:
         logger.debug("response before decrypt ret = %s", ret)
 
         if not ret.get("success"):
-            raise Exception(f"network error:({ret['code']}) {ret['msg']}")
+            raise ApiRequestException(error_code=ret["code"], error_message=ret["msg"])
 
         result = _aex_gcm_decrypt(ret.get("result"), secret)
         try:
