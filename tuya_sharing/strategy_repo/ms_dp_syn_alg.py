@@ -33,7 +33,7 @@ def convert_value(input_str):
                     unlock_index = (partion - 1) * 8 + i_bit
                     res.add(unlock_index)
             index += step
-    except Exception as e:
+    except Exception:
         print("MsAlg-门锁上报解析错误，上报数据协议非法. input_str=" + input_str)
         res = set()
     return res

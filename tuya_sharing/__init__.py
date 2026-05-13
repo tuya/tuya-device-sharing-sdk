@@ -6,7 +6,7 @@ from .scenes import SharingScene, SceneRepository
 from .customerapi import CustomerApi, SharingTokenListener
 from .user import LoginControl, UserRepository
 from .strategy import strategy
-from . import strategy_repo
+from . import strategy_repo  # noqa: F401
 
 
 __all__ = [

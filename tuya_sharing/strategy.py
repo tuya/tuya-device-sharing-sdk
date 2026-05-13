@@ -1,7 +1,5 @@
 from enum import Enum
 
-from .custom_strategy import custom_convert
-
 
 class Strategy(object):
     def __init__(self):

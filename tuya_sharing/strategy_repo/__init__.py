@@ -1,24 +1,24 @@
-from . import cz_timer1_alg
-from . import cz_timer2_alg
-from . import db_v1_alarm
-from . import db_v1_daily
-from . import db_v1_data
-from . import db_v1_frozen
-from . import db_v1_month
-from . import db_v1_params
-from . import db_v1_tariff
-from . import default
-from . import dj_v1_hsv_alg
-from . import dj_v1_scene_alg
-from . import dj_v2_color_alg
-from . import dj_v2_contr_alg
-from . import dj_v2_music_alg
-from . import dj_v2_scene_alg
-from . import enum_
-from . import hb_djv1_color
-from . import hb_jsq_lightv1
-from . import hb_range_v1
-from . import hb_range_v2
-from . import ms_dp_syn_alg
-from . import sd_clean_record
-from . import voice_atm_color
+from . import cz_timer1_alg  # noqa: F401
+from . import cz_timer2_alg  # noqa: F401
+from . import db_v1_alarm  # noqa: F401
+from . import db_v1_daily  # noqa: F401
+from . import db_v1_data  # noqa: F401
+from . import db_v1_frozen  # noqa: F401
+from . import db_v1_month  # noqa: F401
+from . import db_v1_params  # noqa: F401
+from . import db_v1_tariff  # noqa: F401
+from . import default  # noqa: F401
+from . import dj_v1_hsv_alg  # noqa: F401
+from . import dj_v1_scene_alg  # noqa: F401
+from . import dj_v2_color_alg  # noqa: F401
+from . import dj_v2_contr_alg  # noqa: F401
+from . import dj_v2_music_alg  # noqa: F401
+from . import dj_v2_scene_alg  # noqa: F401
+from . import enum_  # noqa: F401
+from . import hb_djv1_color  # noqa: F401
+from . import hb_jsq_lightv1  # noqa: F401
+from . import hb_range_v1  # noqa: F401
+from . import hb_range_v2  # noqa: F401
+from . import ms_dp_syn_alg  # noqa: F401
+from . import sd_clean_record  # noqa: F401
+from . import voice_atm_color  # noqa: F401

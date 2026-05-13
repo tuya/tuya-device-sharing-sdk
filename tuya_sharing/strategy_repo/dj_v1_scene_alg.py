@@ -69,7 +69,7 @@ def convert_value(str_colour_value: str) -> str:
     bright = hex2decimal(str_colour_value[0:2])
     temperature = hex2decimal(str_colour_value[2:4])
     frequency = hex2decimal(str_colour_value[4:6])
-    hsv_len = hex2decimal(str_colour_value[6:8])
+    _hsv_len = hex2decimal(str_colour_value[6:8])
 
     vo.bright = bright
     vo.temperature = temperature

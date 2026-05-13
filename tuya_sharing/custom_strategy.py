@@ -64,7 +64,7 @@ def custom_convert(status_item, config_item):
             status_code = CMDCCodeEnum.switch.name
             status_value = (
                 1
-                if status_value == True or status_value == "true" or status_value == 1
+                if status_value is True or status_value == "true" or status_value == 1
                 else 0
             )
     elif cmdc_status_vo.type == 2:  # Enum 类型

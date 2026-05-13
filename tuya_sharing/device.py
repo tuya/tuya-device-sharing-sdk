@@ -105,7 +105,7 @@ class DeviceRepository:
         self.filter = Filter(10)
 
     def query_devices_by_home(self, home_id: str) -> list[CustomerDevice]:
-        response = self.api.get(f"/v1.0/m/life/ha/home/devices", {"homeId": home_id})
+        response = self.api.get("/v1.0/m/life/ha/home/devices", {"homeId": home_id})
         return self._query_devices(response)
 
     def query_devices_by_ids(self, ids: list) -> list[CustomerDevice]:
