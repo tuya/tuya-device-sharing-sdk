@@ -18,8 +18,16 @@ def convert(dp_item: tuple, config_item: dict = None) -> tuple:
     status_key, _ = json.loads(config_item["statusFormat"]).popitem()
     enum_mappings = config_item["enumMappingMap"]
     status_value = None
-    if str(dp_value) in enum_mappings and "value" in enum_mappings[str(dp_value)]:
-        status_value = enum_mappings[str(dp_value)]["value"]
+
+    key_raw = str(dp_value)
+    key_lc = key_raw.lower()
+
+    if key_raw in enum_mappings and "value" in enum_mappings[key_raw]:
+        status_value = enum_mappings[key_raw]["value"]
+    elif key_lc in enum_mappings and "value" in enum_mappings[key_lc]:
+        status_value = enum_mappings[key_lc]["value"]
+
     if status_value is None:
         status_value = convert_default_value(config_item)
+
     return status_key, status_value
