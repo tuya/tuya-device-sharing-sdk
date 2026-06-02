@@ -1,17 +1,21 @@
 from setuptools import find_packages, setup
 
+
 def get_version():
     version = {}
     with open("tuya_sharing/version.py", encoding="utf-8") as fileobj:
         exec(fileobj.read(), version)
     return version["VERSION"]
 
+
 def requirements():
     with open("requirements.txt") as fileobj:
         return [line.strip() for line in fileobj]
 
+
 with open("README.md", encoding="utf-8") as fh:
     doc_long_description = fh.read()
+
 
 setup(
     name="tuya-device-sharing-sdk",
