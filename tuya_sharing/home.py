@@ -9,6 +9,13 @@ class SmartLifeHome:
         self.name = name
 
 
+class SmartLifeRoom:
+    def __init__(self, id: str, name: str, display_order: int = 0):
+        self.id = id
+        self.name = name
+        self.display_order = display_order
+
+
 class HomeRepository:
     def __init__(self, customer_api: CustomerApi):
         self.api = customer_api
@@ -24,3 +31,15 @@ class HomeRepository:
             return _homes
 
         return []
+
+    def query_room_by_device(self, device_id: str) -> SmartLifeRoom | None:
+        response = self.api.get(f"/v1.0/cloud/life/ha/{device_id}/room")
+
+        if response.get("success", False):
+            room = response.get("result")
+            if room:
+                return SmartLifeRoom(
+                    str(room["id"]), room["name"], room.get("displayOrder", 0)
+                )
+
+        return None
