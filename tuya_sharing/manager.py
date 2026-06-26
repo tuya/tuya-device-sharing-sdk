@@ -4,7 +4,7 @@ from typing import Any, Literal, Optional
 
 from .customerapi import CustomerApi, CustomerTokenInfo, SharingTokenListener
 from .device import DeviceRepository, CustomerDevice
-from .home import HomeRepository, SmartLifeHome
+from .home import HomeRepository, SmartLifeHome, SmartLifeRoom
 from .scenes import SceneRepository
 from .user import UserRepository
 from .strategy import strategy
@@ -97,6 +97,9 @@ class Manager:
 
     def send_commands(self, device_id: str, commands: list[dict[str, Any]]):
         return self.device_repository.send_commands(device_id, commands)
+
+    def query_room_by_device(self, device_id: str) -> Optional[SmartLifeRoom]:
+        return self.home_repository.query_room_by_device(device_id)
 
     def get_device_stream_allocate(
         self, device_id: str, stream_type: Literal["flv", "hls", "rtmp", "rtsp"]

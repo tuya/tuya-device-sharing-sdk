@@ -32,6 +32,7 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 	- send_commands
 - HomeRepository
 	- query_homes
+	- query_room_by_device
 - SceneRepository
 	- query_scenes
 	- trigger_scene
@@ -58,6 +59,7 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 | 0.2.8   | Add report_type to device status  #51                  |
 | 0.2.9   | Fix incorrect type hint in DeviceFunction #44 <br/>Add pre-commit workflow #46 <br/>Apply ruff format #47 |
 | 0.2.10  | Make enum mapping lookups case-insensitive #55 <br/>Add ruff-check to pre-commit #56 <br/>Add ApiRequestException for failed API responses #58 <br/>Fix 0.2.9 changelog formatting #59 |
+| 0.2.11  | Add query_room_by_device to query the room a device belongs to |
 
 ## Installation
 
