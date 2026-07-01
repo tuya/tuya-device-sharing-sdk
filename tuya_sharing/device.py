@@ -174,6 +174,13 @@ class DeviceRepository:
                         "pid": pid,
                     },
                 }
+            custom_type_response = self.api.get(
+                f"/v1.0/m/life/ha/{device_id}/code/custom-type"
+            )
+            if custom_type_response.get("success") and _is_custom_type_enabled(
+                custom_type_response.get("result")
+            ):
+                support_local = False
             device.support_local = support_local
             if support_local:
                 device.local_strategy = dp_id_map
@@ -206,6 +213,15 @@ class DeviceRepository:
             self.api.post(
                 f"/v1.1/m/thing/{device_id}/commands", None, {"commands": commands}
             )
+
+
+def _is_custom_type_enabled(result: Any) -> bool:
+    """Return True when custom-type API indicates non-local (code) reporting."""
+    if isinstance(result, bool):
+        return result
+    if isinstance(result, str):
+        return result.lower() == "true"
+    return False
 
 
 class Filter:
