@@ -61,6 +61,7 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 | 0.2.10  | Make enum mapping lookups case-insensitive #55 <br/>Add ruff-check to pre-commit #56 <br/>Add ApiRequestException for failed API responses #58 <br/>Fix 0.2.9 changelog formatting #59 |
 | 0.2.11  | Add query_room_by_device to query the room a device belongs to |
 | 0.2.12  | Add custom code type validation to disable local reporting when custom-type is enabled #68 |
+| 0.2.13  | Fix query_room_by_device to use the terminal API path /v1.0/m/thing/ha/{device_id}/room <br/>Skip AES-GCM decrypt when response result is empty (e.g. device without a room) |
 
 ## Installation
 
