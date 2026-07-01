@@ -33,7 +33,7 @@ class HomeRepository:
         return []
 
     def query_room_by_device(self, device_id: str) -> SmartLifeRoom | None:
-        response = self.api.get(f"/v1.0/cloud/life/ha/{device_id}/room")
+        response = self.api.get(f"/v1.0/m/thing/ha/{device_id}/room")
 
         if response.get("success", False):
             room = response.get("result")
