@@ -118,11 +118,12 @@ class CustomerApi:
         if not ret.get("success"):
             raise ApiRequestException(error_code=ret["code"], error_message=ret["msg"])
 
-        result = _aex_gcm_decrypt(ret.get("result"), secret)
-        try:
-            ret["result"] = json.loads(result)
-        except json.decoder.JSONDecodeError:
-            ret["result"] = result
+        if ret.get("result"):
+            result = _aex_gcm_decrypt(ret.get("result"), secret)
+            try:
+                ret["result"] = json.loads(result)
+            except json.decoder.JSONDecodeError:
+                ret["result"] = result
 
         logger.debug("response ret = %s", ret)
         return ret
