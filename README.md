@@ -60,6 +60,7 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 | 0.2.9   | Fix incorrect type hint in DeviceFunction #44 <br/>Add pre-commit workflow #46 <br/>Apply ruff format #47 |
 | 0.2.10  | Make enum mapping lookups case-insensitive #55 <br/>Add ruff-check to pre-commit #56 <br/>Add ApiRequestException for failed API responses #58 <br/>Fix 0.2.9 changelog formatting #59 |
 | 0.2.11  | Add query_room_by_device to query the room a device belongs to |
+| 0.2.12  | Add custom code type validation to disable local reporting when custom-type is enabled #68 |
 
 ## Installation
 
