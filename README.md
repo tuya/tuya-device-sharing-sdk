@@ -62,6 +62,7 @@ With diversified devices and industries, Tuya IoT Development Platform opens bas
 | 0.2.11  | Add query_room_by_device to query the room a device belongs to |
 | 0.2.12  | Add custom code type validation to disable local reporting when custom-type is enabled #68 |
 | 0.2.13  | Fix query_room_by_device to use the terminal API path /v1.0/m/thing/ha/{device_id}/room <br/>Skip AES-GCM decrypt when response result is empty (e.g. device without a room) |
+| 0.2.14  | Fix MQTT stale client_id reconnect storm on renewal: fully tear down the old client (loop_stop) and disable paho auto-reconnect so it never re-authenticates with an expired client_id |
 
 ## Installation
 
