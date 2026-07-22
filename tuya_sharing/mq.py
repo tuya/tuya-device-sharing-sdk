@@ -5,7 +5,6 @@ from __future__ import annotations
 import threading
 from .customerapi import CustomerApi
 from typing import Any, Callable
-from requests.exceptions import RequestException
 from .customerlogging import logger
 from .device import CustomerDevice
 from paho.mqtt import client as mqtt
@@ -38,6 +37,10 @@ class SharingMQ(threading.Thread):
         super().__init__()
         self.api = customer_api
         self._stop_event = threading.Event()
+        # Wakes run() early (before the 2h expiry) when a reconnect is needed,
+        # e.g. auth failure (rc=5) or an unexpected disconnect. run() then
+        # re-establishes the connection with freshly issued credentials.
+        self._wakeup = threading.Event()
         self.client = None
         self.mq_config = None
         self.message_listeners = set()
@@ -57,6 +60,11 @@ class SharingMQ(threading.Thread):
     def _on_disconnect(self, client, userdata, rc):
         if rc != 0:
             logger.error(f"Unexpected disconnection.{rc}")
+            # paho auto-reconnect is disabled (reconnect_on_failure=False), so
+            # ask run() to reconnect with fresh credentials instead of letting
+            # this client retry with its now-stale client_id.
+            if not self._stop_event.is_set():
+                self._wakeup.set()
         else:
             logger.debug("disconnect")
 
@@ -78,7 +86,13 @@ class SharingMQ(threading.Thread):
                     mqttc.subscribe(topics_to_subscribe)
 
         elif rc == CONNECT_FAILED_NOT_AUTHORISED:
-            self.__run_mqtt()
+            # Runs on this client's paho network-loop thread; must NOT rebuild
+            # the connection here (would leak this client and spawn nested
+            # clients). Signal run() to refresh credentials and reconnect.
+            logger.error(
+                "MQTT auth failed (rc=5); requesting reconnect with fresh credentials"
+            )
+            self._wakeup.set()
 
     def subscribe_device(self, dev_id: str, device: CustomerDevice):
         self.device.append(device)
@@ -118,18 +132,34 @@ class SharingMQ(threading.Thread):
         backoff_seconds = 1
         while not self._stop_event.is_set():
             try:
+                self._wakeup.clear()
                 self.__run_mqtt()
-                backoff_seconds = 1
-
-                # reconnect every 2 hours required.
-                self._stop_event.wait(self.mq_config.expire_time - 60)
-            except RequestException as e:
+            except Exception as e:
+                # Includes API failures (RequestException) and connect errors
+                # (e.g. broker down -> OSError). Back off before retrying so a
+                # persistent failure cannot spin into a request/connect storm.
                 logger.exception(e)
                 logger.error(
-                    f"failed to refresh mqtt server, retrying in {backoff_seconds} seconds."
+                    f"failed to (re)connect mqtt, retrying in {backoff_seconds} seconds."
                 )
-
                 self._stop_event.wait(backoff_seconds)
+                backoff_seconds = min(backoff_seconds * 2, 60)
+                continue
+
+            # Connected. Wait until ~60s before expiry (normal 2h renewal), or
+            # until a reconnect is requested early (auth failure / drop).
+            reconnect_requested = self._wakeup.wait(self.mq_config.expire_time - 60)
+            if self._stop_event.is_set():
+                break
+            if reconnect_requested:
+                # Early drop/auth-failure: throttle with growing backoff so a
+                # flapping broker cannot trigger a reconnect storm (each attempt
+                # is a fresh credential fetch). A clean renewal at expiry keeps
+                # backoff at 1 and reconnects immediately.
+                self._stop_event.wait(backoff_seconds)
+                backoff_seconds = min(backoff_seconds * 2, 60)
+            else:
+                backoff_seconds = 1
 
     def __run_mqtt(self):
         mq_config = self._get_mqtt_config()
@@ -140,11 +170,31 @@ class SharingMQ(threading.Thread):
         mqttc = self._start(mq_config)
 
         if self.client:
-            self.client.disconnect()
+            self._teardown(self.client)
         self.client = mqttc
 
+    def _teardown(self, client: mqtt.Client):
+        """Fully dispose of a paho client: disconnect and stop its loop thread.
+
+        Without loop_stop() the background network thread keeps running and,
+        combined with auto-reconnect, would keep re-authenticating with this
+        client's now-stale client_id. Only ever called from a thread other than
+        the client's own loop thread, so loop_stop() cannot deadlock.
+        """
+        try:
+            client.disconnect()
+        except Exception as e:
+            logger.error("mq disconnect error %s", e)
+        try:
+            client.loop_stop()
+        except Exception as e:
+            logger.error("mq loop_stop error %s", e)
+
     def _start(self, mq_config: SharingMQConfig) -> mqtt.Client:
-        mqttc = mqtt.Client(client_id=mq_config.client_id)
+        # reconnect_on_failure=False: the SDK manages reconnection itself (with
+        # freshly issued credentials); paho's built-in reconnect would reuse
+        # this client's fixed client_id, which becomes stale after renewal.
+        mqttc = mqtt.Client(client_id=mq_config.client_id, reconnect_on_failure=False)
         mqttc.username_pw_set(mq_config.username, mq_config.password)
         mqttc.user_data_set({"mqConfig": mq_config})
         mqttc.on_connect = self._on_connect
@@ -177,12 +227,11 @@ class SharingMQ(threading.Thread):
         """
         logger.debug("stop")
         self.message_listeners = set()
-        try:
-            self.client.disconnect()
-        except Exception as e:
-            logger.error("mq disconnect error %s", e)
-        self.client = None
         self._stop_event.set()
+        self._wakeup.set()
+        if self.client:
+            self._teardown(self.client)
+        self.client = None
 
     def add_message_listener(self, listener: Callable[[dict], None]):
         """Add mqtt message listener."""
