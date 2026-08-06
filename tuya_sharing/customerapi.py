@@ -140,22 +140,31 @@ class CustomerApi:
 
         self.refresh_token = True
         try:
-            response = self.get("/v1.0/m/token/" + self.token_info.refresh_token)
-
-            if response.get("success"):
-                result = response.get("result", {})
-                token_info = {
-                    "t": response["t"],
-                    "expire_time": result["expireTime"],
-                    "uid": result["uid"],
-                    "access_token": result["accessToken"],
-                    "refresh_token": result["refreshToken"],
-                }
-                self.token_info = CustomerTokenInfo(token_info)
-                if self.token_listener is not None:
-                    self.token_listener.update_token(token_info)
-        except Exception as e:
-            logger.error("net work error = %s", e)
+            for attempt in range(3):
+                try:
+                    response = self.get("/v1.0/m/token/" + self.token_info.refresh_token)
+                    if response and response.get("success"):
+                        result = response.get("result", {})
+                        token_info = {
+                            "t": response["t"],
+                            "expire_time": result["expireTime"],
+                            "uid": result["uid"],
+                            "access_token": result["accessToken"],
+                            "refresh_token": result["refreshToken"],
+                        }
+                        self.token_info = CustomerTokenInfo(token_info)
+                        if self.token_listener is not None:
+                            self.token_listener.update_token(token_info)
+                        return
+                    else:
+                        logger.error(
+                            "token refresh attempt %d/3 returned no success", attempt + 1
+                        )
+                except Exception as e:
+                    logger.error("token refresh attempt %d/3 failed: %s", attempt + 1, e)
+                if attempt < 2:
+                    time.sleep(30)
+            logger.error("token refresh failed after 3 attempts")
         finally:
             self.refresh_token = False
 
