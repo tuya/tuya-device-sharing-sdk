@@ -135,14 +135,28 @@ class CustomerApi:
         now = int(time.time() * 1000)
         expired_time = self.token_info.expire_time
 
-        if expired_time - 60 * 1000 > now:  # 1min
+        if expired_time - 30 * 60 * 1000 > now:  # refresh 30 min before expiry
             return
 
         self.refresh_token = True
         try:
             for attempt in range(3):
                 try:
-                    response = self.get("/v1.0/m/token/" + self.token_info.refresh_token)
+                    # When the access_token is already expired the server cannot
+                    # validate the X-token signature component and returns
+                    # "sign invalid (-9999999)".  Omit it so the sign is built
+                    # from the refresh_token alone, which is what the endpoint
+                    # actually requires.
+                    saved_access_token = self.token_info.access_token
+                    token_is_expired = expired_time <= now
+                    if token_is_expired:
+                        self.token_info.access_token = ""
+                    try:
+                        response = self.get("/v1.0/m/token/" + self.token_info.refresh_token)
+                    finally:
+                        if token_is_expired and not self.token_info.access_token:
+                            self.token_info.access_token = saved_access_token
+
                     if response and response.get("success"):
                         result = response.get("result", {})
                         token_info = {
