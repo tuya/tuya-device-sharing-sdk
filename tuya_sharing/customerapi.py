@@ -175,6 +175,9 @@ class CustomerApi:
                             "token refresh attempt %d/3 returned no success", attempt + 1
                         )
                 except Exception as e:
+                    if "1010" in str(e):
+                        logger.error("token refresh: permanent failure (token expired/invalid), skipping retries: %s", e)
+                        return
                     logger.error("token refresh attempt %d/3 failed: %s", attempt + 1, e)
                 if attempt < 2:
                     time.sleep(30)
