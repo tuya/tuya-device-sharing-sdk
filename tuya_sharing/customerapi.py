@@ -140,48 +140,33 @@ class CustomerApi:
 
         self.refresh_token = True
         try:
-            for attempt in range(3):
-                try:
-                    # When the access_token is already expired the server cannot
-                    # validate the X-token signature component and returns
-                    # "sign invalid (-9999999)".  Omit it so the sign is built
-                    # from the refresh_token alone, which is what the endpoint
-                    # actually requires.
-                    saved_access_token = self.token_info.access_token
-                    token_is_expired = expired_time <= now
-                    if token_is_expired:
-                        self.token_info.access_token = ""
-                    try:
-                        response = self.get("/v1.0/m/token/" + self.token_info.refresh_token)
-                    finally:
-                        if token_is_expired and not self.token_info.access_token:
-                            self.token_info.access_token = saved_access_token
+            # X-token is not required on a refresh call (per API docs) and
+            # including it can cause sign-invalid on some server versions.
+            # Always omit it so the signature is built from refresh_token alone.
+            saved_access_token = self.token_info.access_token
+            self.token_info.access_token = ""
+            try:
+                response = self.get("/v1.0/m/token/" + self.token_info.refresh_token)
+            finally:
+                if not self.token_info.access_token:
+                    self.token_info.access_token = saved_access_token
 
-                    if response and response.get("success"):
-                        result = response.get("result", {})
-                        token_info = {
-                            "t": response["t"],
-                            "expire_time": result["expireTime"],
-                            "uid": result["uid"],
-                            "access_token": result["accessToken"],
-                            "refresh_token": result["refreshToken"],
-                        }
-                        self.token_info = CustomerTokenInfo(token_info)
-                        if self.token_listener is not None:
-                            self.token_listener.update_token(token_info)
-                        return
-                    else:
-                        logger.error(
-                            "token refresh attempt %d/3 returned no success", attempt + 1
-                        )
-                except Exception as e:
-                    if "1010" in str(e):
-                        logger.error("token refresh: permanent failure (token expired/invalid), skipping retries: %s", e)
-                        return
-                    logger.error("token refresh attempt %d/3 failed: %s", attempt + 1, e)
-                if attempt < 2:
-                    time.sleep(30)
-            logger.error("token refresh failed after 3 attempts")
+            if response and response.get("success"):
+                result = response.get("result", {})
+                token_info = {
+                    "t": response["t"],
+                    "expire_time": result["expireTime"],
+                    "uid": result["uid"],
+                    "access_token": result["accessToken"],
+                    "refresh_token": result["refreshToken"],
+                }
+                self.token_info = CustomerTokenInfo(token_info)
+                if self.token_listener is not None:
+                    self.token_listener.update_token(token_info)
+            else:
+                logger.error("token refresh failed")
+        except Exception as e:
+            logger.error("token refresh failed: %s", e)
         finally:
             self.refresh_token = False
 
