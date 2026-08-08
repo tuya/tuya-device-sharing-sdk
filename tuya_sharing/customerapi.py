@@ -150,32 +150,32 @@ class CustomerApi:
             if expired_time - 30 * 60 * 1000 > now:  # 30min proactive window
                 return
 
-        logger.debug("refresh_access_token_if_need: window open, attempting refresh")
-        self._refreshing.active = True
-        try:
-            # skip_token=True: X-token is not required on a refresh call (per
-            # API docs) and including it can cause sign-invalid on some server
-            # versions. Pass the flag so __request omits it cleanly without
-            # mutating shared state.
-            response = self.get("/v1.0/m/token/" + self.token_info.refresh_token, skip_token=True)
-            if response and response.get("success"):
-                result = response.get("result", {})
-                token_info = {
-                    "t": response["t"],
-                    "expire_time": result["expireTime"],
-                    "uid": result["uid"],
-                    "access_token": result["accessToken"],
-                    "refresh_token": result["refreshToken"]
-                }
-                self.token_info = CustomerTokenInfo(token_info)
-                if self.token_listener is not None:
-                    self.token_listener.update_token(token_info)
-            else:
-                logger.error("token refresh failed")
-        except Exception as e:
-            logger.error("token refresh failed: %s", e)
-        finally:
-            self._refreshing.active = False
+            logger.debug("refresh_access_token_if_need: window open, attempting refresh")
+            self._refreshing.active = True
+            try:
+                # skip_token=True: X-token is not required on a refresh call (per
+                # API docs) and including it can cause sign-invalid on some server
+                # versions. Pass the flag so __request omits it cleanly without
+                # mutating shared state.
+                response = self.get("/v1.0/m/token/" + self.token_info.refresh_token, skip_token=True)
+                if response and response.get("success"):
+                    result = response.get("result", {})
+                    token_info = {
+                        "t": response["t"],
+                        "expire_time": result["expireTime"],
+                        "uid": result["uid"],
+                        "access_token": result["accessToken"],
+                        "refresh_token": result["refreshToken"]
+                    }
+                    self.token_info = CustomerTokenInfo(token_info)
+                    if self.token_listener is not None:
+                        self.token_listener.update_token(token_info)
+                else:
+                    logger.error("token refresh failed")
+            except Exception as e:
+                logger.error("token refresh failed: %s", e)
+            finally:
+                self._refreshing.active = False
 
     def get(self, path: str, params: dict[str, Any] | None = None, skip_token: bool = False) -> dict[str, Any]:
         """Http Get.
