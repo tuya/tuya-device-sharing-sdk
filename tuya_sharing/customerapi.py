@@ -17,6 +17,7 @@ import uuid
 from abc import ABCMeta
 
 import time
+import threading
 
 
 class CustomerTokenInfo:
@@ -53,6 +54,8 @@ class CustomerApi:
         self.endpoint = end_point
         self.refresh_token = False
         self.token_listener = listener
+        self._refresh_lock = threading.Lock()
+        self._refreshing = threading.local()
 
     def __request(
         self,
@@ -60,13 +63,17 @@ class CustomerApi:
         path: str,
         params: dict[str, Any] | None = None,
         body: dict[str, Any] | None = None,
+        skip_token: bool = False,
     ) -> dict[str, Any] | None:
         self.refresh_access_token_if_need()
+
+        # Keep the encryption key and header on one token generation.
+        token_info = self.token_info
 
         rid = str(uuid.uuid4())
         sid = ""
         md5 = hashlib.md5()
-        rid_refresh_token = rid + self.token_info.refresh_token
+        rid_refresh_token = rid + token_info.refresh_token
         md5.update(rid_refresh_token.encode("utf-8"))
         hash_key = md5.hexdigest()
         secret = _secret_generating(rid, sid, hash_key)
@@ -91,8 +98,8 @@ class CustomerApi:
             "X-sid": sid,
             "X-time": str(t),
         }
-        if self.token_info is not None and len(self.token_info.access_token) > 0:
-            headers["X-token"] = self.token_info.access_token
+        if not skip_token and token_info is not None and len(token_info.access_token) > 0:
+            headers["X-token"] = token_info.access_token
 
         sign = _restful_sign(hash_key, query_encdata, body_encdata, headers)
         headers["X-sign"] = sign
@@ -129,37 +136,50 @@ class CustomerApi:
         return ret
 
     def refresh_access_token_if_need(self):
-        if self.refresh_token:
+        # Guard against recursive calls: get() -> __request() -> here again
+        # on the same thread. The lock below serialises across threads; this
+        # local flag prevents the same thread from deadlocking on itself.
+        if getattr(self._refreshing, "active", False):
             return
 
-        now = int(time.time() * 1000)
-        expired_time = self.token_info.expire_time
+        with self._refresh_lock:
+            # Re-check inside the lock: another thread may have just refreshed.
+            now = int(time.time() * 1000)
+            expired_time = self.token_info.expire_time
+            remaining_sec = (expired_time - now) // 1000
+            logger.debug("refresh_access_token_if_need: token remaining=%ds", remaining_sec)
 
-        if expired_time - 60 * 1000 > now:  # 1min
-            return
+            if expired_time - 30 * 60 * 1000 > now:  # 30min proactive window
+                return
 
-        self.refresh_token = True
-        try:
-            response = self.get("/v1.0/m/token/" + self.token_info.refresh_token)
+            logger.debug("refresh_access_token_if_need: window open, attempting refresh")
+            self._refreshing.active = True
+            try:
+                # skip_token=True: X-token is not required on a refresh call (per
+                # API docs) and including it can cause sign-invalid on some server
+                # versions. Pass the flag so __request omits it cleanly without
+                # mutating shared state.
+                response = self.get("/v1.0/m/token/" + self.token_info.refresh_token, skip_token=True)
+                if response and response.get("success"):
+                    result = response.get("result", {})
+                    token_info = {
+                        "t": response["t"],
+                        "expire_time": result["expireTime"],
+                        "uid": result["uid"],
+                        "access_token": result["accessToken"],
+                        "refresh_token": result["refreshToken"]
+                    }
+                    self.token_info = CustomerTokenInfo(token_info)
+                    if self.token_listener is not None:
+                        self.token_listener.update_token(token_info)
+                else:
+                    logger.error("token refresh failed")
+            except Exception as e:
+                logger.error("token refresh failed: %s", e)
+            finally:
+                self._refreshing.active = False
 
-            if response.get("success"):
-                result = response.get("result", {})
-                token_info = {
-                    "t": response["t"],
-                    "expire_time": result["expireTime"],
-                    "uid": result["uid"],
-                    "access_token": result["accessToken"],
-                    "refresh_token": result["refreshToken"],
-                }
-                self.token_info = CustomerTokenInfo(token_info)
-                if self.token_listener is not None:
-                    self.token_listener.update_token(token_info)
-        except Exception as e:
-            logger.error("net work error = %s", e)
-        finally:
-            self.refresh_token = False
-
-    def get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    def get(self, path: str, params: dict[str, Any] | None = None, skip_token: bool = False) -> dict[str, Any]:
         """Http Get.
 
         Requests the server to return specified resources.
@@ -171,7 +191,7 @@ class CustomerApi:
         Returns:
             response: response body
         """
-        return self.__request("GET", path, params, None)
+        return self.__request("GET", path, params, None, skip_token=skip_token)
 
     def post(
         self,
